@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from tqdm import tqdm
 
 def get_activation(name):
     return {
@@ -24,7 +25,8 @@ def train(model, device, train_loader, optimizer, criterion, epoch):
     correct = 0
     total = 0
 
-    for batch_idx, (data, target) in enumerate(train_loader):
+    # Wrap the train_loader with tqdm to show a progress bar
+    for batch_idx, (data, target) in enumerate(tqdm(train_loader, desc=f"Epoch {epoch} Training", unit="batch")):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
 
@@ -49,8 +51,9 @@ def evaluate(model, device, test_loader, criterion):
     correct = 0
     total = 0
 
+    # Wrap the test_loader with tqdm to show a progress bar
     with torch.no_grad():
-        for data, target in test_loader:
+        for data, target in tqdm(test_loader, desc="Evaluating", unit="batch"):
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss = criterion(output, target)
