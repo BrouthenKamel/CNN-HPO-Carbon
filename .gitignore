@@ -1,1 +1,4 @@
+**/__pycache__/
+
+src/surrogate_modeling/MNIST/
 cnn_hpo_carbon.egg-info/
