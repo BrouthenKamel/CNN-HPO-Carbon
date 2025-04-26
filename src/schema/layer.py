@@ -40,3 +40,10 @@ class DropoutLayer(BaseModel):
     
 class LinearLayer(BaseModel):
     neurons: int
+
+class BatchNormLayer(BaseModel):
+    num_features: int = None  # Make optional for initialization without knowing channels
+    eps: float = 1e-5
+    momentum: float = 0.1
+    affine: bool = True
+    track_running_stats: bool = True

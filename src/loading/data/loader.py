@@ -1,14 +1,11 @@
 import os
-
-from tqdm import tqdm
-
 import torchvision
 import torchvision.transforms as transforms
-from torchvision.utils import save_image
+import torch 
 
-def load_dataset(dataset_name: str, data_dir: str = './data', download: bool = True):
+def load_dataset(dataset_name, data_dir='./data', download=True):
     """
-    Loads the train and test datasets.
+    Loads the dataset. (Moved from data_model_loader.py)
 
     Args:
         dataset_name (str): The name of the dataset to load ('MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100').
@@ -16,50 +13,46 @@ def load_dataset(dataset_name: str, data_dir: str = './data', download: bool = T
         download (bool): Whether to download the dataset if not found.
 
     Returns:
-        Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torchvision.transforms.Compose]:
-            Train dataset, Test dataset, Transformations applied.
+        torch.utils.data.Dataset: The loaded dataset (typically the training set).
+        torchvision.transforms.Compose: The transformations applied to the dataset.
+        int: Number of input channels.
+        int: Number of classes.
+
 
     Raises:
         ValueError: If the dataset_name is not supported.
     """
-    
+    num_classes = 0
+    in_channels = 0
+
     if dataset_name in ['MNIST', 'FashionMNIST']:
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,)) 
         ])
+        in_channels = 1
+        num_classes = 10
     elif dataset_name in ['CIFAR10', 'CIFAR100']:
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
         ])
+        in_channels = 3
+        num_classes = 10 if dataset_name == 'CIFAR10' else 100
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}. Choose from 'MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100'.")
 
+    dataset_class = None
     if dataset_name == 'MNIST':
-        train_dataset = torchvision.datasets.MNIST(root=data_dir, train=True, download=download, transform=transform)
-        test_dataset = torchvision.datasets.MNIST(root=data_dir, train=False, download=download, transform=transform)
+        dataset_class = torchvision.datasets.MNIST
     elif dataset_name == 'FashionMNIST':
-        train_dataset = torchvision.datasets.FashionMNIST(root=data_dir, train=True, download=download, transform=transform)
-        test_dataset = torchvision.datasets.FashionMNIST(root=data_dir, train=False, download=download, transform=transform)
+        dataset_class = torchvision.datasets.FashionMNIST
     elif dataset_name == 'CIFAR10':
-        train_dataset = torchvision.datasets.CIFAR10(root=data_dir, train=True, download=download, transform=transform)
-        test_dataset = torchvision.datasets.CIFAR10(root=data_dir, train=False, download=download, transform=transform)
+        dataset_class = torchvision.datasets.CIFAR10
     elif dataset_name == 'CIFAR100':
-        train_dataset = torchvision.datasets.CIFAR100(root=data_dir, train=True, download=download, transform=transform)
-        test_dataset = torchvision.datasets.CIFAR100(root=data_dir, train=False, download=download, transform=transform)
+        dataset_class = torchvision.datasets.CIFAR100
 
-    print(f"Successfully loaded {dataset_name} train and test datasets.")
-    return train_dataset, test_dataset
+    dataset = dataset_class(root=data_dir, train=True, download=download, transform=transform)
 
-if __name__ == "__main__":
-    print("Loading datasets...\n")
-    for dataset_name in ['MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100']:
-        print(f"Loading {dataset_name} dataset...")
-        train_dataset, test_dataset = load_dataset(dataset_name)
-        print(f"Number of training samples: {len(train_dataset)}")
-        print(f"Number of testing samples: {len(test_dataset)}")
-        print(f"Sample image shape: {train_dataset[0][0].shape}")
-        print(f"Sample label: {train_dataset[0][1]}")
-        print("-"*50)
-    print("All datasets loaded successfully.")
+    print(f"Successfully loaded {dataset_name} dataset (train={True}).")
+    return dataset, transform, in_channels, num_classes
