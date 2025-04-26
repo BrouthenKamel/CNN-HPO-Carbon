@@ -1,0 +1,30 @@
+{
+    "convolutional": {
+      "kc": [32, 64, 96, 100, 128, 160, 192, 224, 256],
+      "ks": [3, 5, 7],
+      "f": ["relu", "leaky relu", "elu", "tanh", "linear"],
+      "s": 1,
+      "p": "SAME"
+    },
+    "batch_normalization": {
+      "bn": [true, false]
+    },
+    "pooling": {
+      "dp": [0.3, 0.4, 0.5],
+      "ksp": [2, 3],
+      "pt": ["MAX", "AVG"],
+      "sp": 2
+    },
+    "fully_connected": {
+      "uf": [16, 32, 64, 128, 256, 512],
+      "df": [0.1, 0.2, 0.3, 0.4, 0.5],
+      "af": ["relu", "leaky relu", "elu", "tanh", "linear"]
+    },
+    "training": {
+      "batch_size": [64, 128, 256],
+      "learning_rate": [0.0001, 0.0002, 0.0005, 0.0008, 0.001, 0.002, 0.004, 0.005, 0.008, 0.01],
+      "epochs": [10, 20, 30, 50, 100],
+      "optimizer": ["adam"],
+      "loss_function": ["categorical_crossentropy", "binary_crossentropy", "mse", "mae"]
+    }
+  }
