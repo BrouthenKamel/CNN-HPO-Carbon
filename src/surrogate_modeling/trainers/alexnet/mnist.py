@@ -12,7 +12,7 @@ def run_mnist(csv_path, row, result_csv_path, device='cuda'):
     config = df.iloc[row].to_dict() 
 
     # Model setup
-    model = CustomAlexNet(csv_path=csv_path, row=row)
+    model = CustomAlexNet(csv_path=csv_path, input_channels=1, row=row)
     model.to(device)
 
     # Get DataLoader for MNIST

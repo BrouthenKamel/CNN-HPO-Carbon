@@ -93,7 +93,7 @@ class CustomAlexNet(nn.Module):
         return nn.Sequential(*fc_layers)
 
     def _get_flattened_dim(self):
-        dummy = torch.zeros(1, 3, 224, 224)  # For MNIST (28x28 input)
+        dummy = torch.zeros(1, 1, 224, 224)  # For MNIST (28x28 input)
         with torch.no_grad():
             out = self.features(dummy)
         return out.view(1, -1).shape[1]

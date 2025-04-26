@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 def get_mnist_data(batch_size):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.Grayscale(num_output_channels=3),
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))  # Normalize MNIST
     ])
