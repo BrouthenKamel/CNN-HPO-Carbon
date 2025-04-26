@@ -5,10 +5,10 @@ from sklearn.impute import SimpleImputer
 
 def predict():
     # 1. Load the saved model + feature columns
-    lr, feature_columns = joblib.load('./models/alexnet/mnist/lr/lr_model.pkl')
+    tree, feature_columns = joblib.load('./models/alexnet/mnist/dt/tree_model.pkl')
 
     # 2. Load the input data for inference
-    df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[5:6]
+    df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[4:6]
 
     # 3. Preprocess: drop target (if exists)
     y_true = df['test_accuracy'] if 'test_accuracy' in df else None
@@ -25,14 +25,14 @@ def predict():
     # 5. One-hot encode categoricals
     X = pd.get_dummies(df, drop_first=True)
 
-    # 6. Align columns (important for Linear Regression)
+    # 6. Align columns
     for col in feature_columns:
         if col not in X.columns:
-            X[col] = 0  # Add missing columns with zero
-    X = X[feature_columns]  # Ensure order is same
+            X[col] = 0  # Fill missing feature columns
+    X = X[feature_columns]  # Ensure correct order
 
     # 7. Predict
-    mu = lr.predict(X.values)
+    mu = tree.predict(X.values)
 
     # 8. Output results
     for i, pred in enumerate(mu):
@@ -43,5 +43,3 @@ def predict():
             print(f"  True value      : {true:.6f}")
         print()
     return mu
-
-print(predict())
