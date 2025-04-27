@@ -151,7 +151,7 @@ def predict_from_config(ma: ModelArchitecture, model_path="./src/surrogate_model
 
     # 6. predict
     preds = tree.predict(X.values)
-    return preds
+    return preds[0]
 
 # featurize_model_architecture(AlexNetArchitecture).to_csv("try.csv", index=False)
 # print(predict_from_config(AlexNetArchitecture))
