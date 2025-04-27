@@ -2,24 +2,23 @@ import random
 import torch.nn as nn
 import math
 from cooling import *
-from src.neighborhood.src.neighborhood import ConfigurableCNN
+from src.neighborhood.src.neighboring import modify_value
+from src.schema.model import ModelArchitecture
+from tqdm import tqdm
 
 
 # rana nakhdmo b accuracy
 class SimulatedAnnealing:
-    def __init__(self, initial_temp:int, cooling_schedule:str, search_space:dict, init_config:dict = None, max_stagnation_iters = 5, stagnation_threshold=0.01):
+    def __init__(self, init_configuration:ModelArchitecture, initial_temp:int, cooling_schedule:CoolingSchedule, max_stagnation_iters = 5, stagnation_threshold=0.01):
         self.initial_temp = initial_temp
         self.cooling_schedule = cooling_schedule
         self.max_stagnation_iters = max_stagnation_iters
         self.stagnation_threshold = stagnation_threshold
-        self.search_space = search_space
-        if init_config is None:
-            self.init_config = self._initialize_configuration()
-        else:
-            self.init_config = init_config
+        self.init_configuration = init_configuration
 
-    def optimize(self, hyperparameter_type, num_iterations):
-        current_configuration = self.init_config
+
+    def optimize(self, hyperparameter_type:list[str], num_iterations:int)-> tuple[ModelArchitecture, float]:
+        current_configuration = self.init_configuration
         current_score = self._evaluate(current_configuration)
         best_configuration = current_configuration
         best_score = current_score        
@@ -28,7 +27,7 @@ class SimulatedAnnealing:
         stagnation_counter = 0
         
 
-        for iteration in range(num_iterations):
+        for iteration in tqdm(range(num_iterations)):
             new_configuration = self._generate_neighborhood(current_configuration, hyperparameter_type)
             new_score = self._evaluate(new_configuration)
             delta = new_score - current_score
@@ -64,24 +63,19 @@ class SimulatedAnnealing:
 
         return best_configuration, best_score
 
-    def _initialize_configuration(self):
-        # hta ldrk the only idea is to just use the model's original hyperparameters
-        # htan nzid nhawes 3la other methods (maybe use a heuristic ?)
-        pass
-
     def _generate_neighborhood(self, current_configuration, hyperparameter_type):
-        neighborhood_generator = ConfigurableCNN(self.search_space, current_configuration)
-        return neighborhood_generator.generate_neighbouring_config(to_modify=[hyperparameter_type])
+        for bloc in hyperparameter_type:
+            element = getattr(current_configuration,bloc)
+            modify_value(element)
 
     def _evaluate(self, configuration):
         # asna lkhdma ta imed 
         pass
     
     def _cooling_schedule(self, current_temp, iteration):
-        if self.cooling_schedule == 'exponential':
+        if self.cooling_schedule == CoolingSchedule.EXPONENTIAL:
             return exponential_cooling(current_temp, iteration)
-        elif self.cooling_schedule == 'linear':
+        elif self.cooling_schedule == CoolingSchedule.LINEAR:
             return linear_cooling(current_temp, 1, iteration)
-        elif self.cooling_schedule == 'logarithmic':
+        elif self.cooling_schedule == CoolingSchedule.LOGARITHMIC:
             return logarithmic_cooling(current_temp, iteration)
-        pass
