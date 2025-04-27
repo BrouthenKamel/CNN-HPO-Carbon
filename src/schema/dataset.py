@@ -1,7 +1,14 @@
 from torch.utils.data import Dataset as TorchDataset
 from torchvision.transforms import Compose
 
+from enum import Enum
 # from pydantic import BaseModel
+
+class DatasetName(str, Enum):
+    MNIST = "MNIST"
+    FashionMNIST = "FashionMNIST"
+    CIFAR10 = "CIFAR10"
+    CIFAR100 = "CIFAR100"
 
 class Dataset():
     

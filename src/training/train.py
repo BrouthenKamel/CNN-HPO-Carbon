@@ -6,12 +6,16 @@ from torch.utils.data import DataLoader, random_split
 import time
 import os
 
+from tqdm import tqdm
+
 from src.loading.data.loader import load_dataset
 from src.loading.models.model_builder import create_model
 from src.schema.training import OptimizerType, TrainingParams
+from src.schema.dataset import Dataset
 from src.loading.models.alexnet import AlexNetArchitecture
+from src.loading.models.model_builder import load_model_architecture
 
-def get_optimizer(model: nn.Module,training_params: TrainingParams):
+def get_optimizer(model: nn.Module, training_params: TrainingParams):
     
     kwargs = {}
     if training_params.learning_rate is not None:
@@ -30,7 +34,70 @@ def get_optimizer(model: nn.Module,training_params: TrainingParams):
     elif training_params.optimizer == OptimizerType.ADGARAD:
         return optim.Adagrad(model.parameters(), **kwargs)
 
-def train_model(args):
+def train_model(model: nn.Module, dataset: Dataset, training_params: TrainingParams):
+    """
+    Trains the model on the provided dataset using the specified training parameters.
+
+    Args:
+        model (nn.Module): The model to train.
+        dataset (Dataset): The dataset to use for training.
+        training_params (TrainingParams): The training parameters.
+    """
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+
+    criterion = nn.CrossEntropyLoss()
+    optimizer = get_optimizer(model, training_params)
+
+    train_loader = DataLoader(dataset.train_dataset, batch_size=training_params.batch_size, shuffle=True)
+    test_loader = DataLoader(dataset.test_dataset, batch_size=training_params.batch_size, shuffle=False)
+
+    for epoch in range(training_params.epochs):
+        model.train()
+        train_loss, train_correct, train_total = 0.0, 0, 0
+
+        progress_bar = tqdm(train_loader, desc=f"Epoch {epoch+1}/{training_params.epochs}", leave=False)
+        for inputs, labels in progress_bar:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            train_total += labels.size(0)
+            train_correct += (predicted == labels).sum().item()
+
+            progress_bar.set_postfix({
+                'loss': f'{train_loss / train_total:.4f}',
+                'acc': f'{100 * train_correct / train_total:.2f}%'
+            })
+
+        print(f"Epoch {epoch+1} | Train Loss: {train_loss/len(train_loader):.4f} | Train Accuracy: {100 * train_correct/train_total:.2f}%")
+
+    print("Finished Training")
+
+    model.eval()
+    test_loss, test_correct, test_total = 0.0, 0, 0
+
+    with torch.no_grad():
+        for inputs, labels in tqdm(test_loader, desc="Evaluating"):
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            test_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            test_total += labels.size(0)
+            test_correct += (predicted == labels).sum().item()
+
+    print(f"Test Loss: {test_loss/len(test_loader):.4f} | Test Accuracy: {100 * test_correct/test_total:.2f}%")
+
+def train_model_with_args(args):
     """
     Trains a specified model on a specified dataset, using command-line args
     to potentially override schema defaults.
@@ -79,7 +146,7 @@ def train_model(args):
     print("Loading model architecture schema...")
     try:
         architecture_schema = load_model_architecture(model_name)
-        schema_training_params: Training = architecture_schema.training
+        schema_training_params: TrainingParams = architecture_schema.training
         print(f"Schema defaults: Epochs={schema_training_params.epochs}, Batch={schema_training_params.batch_size}, LR={schema_training_params.learning_rate}, Optim={schema_training_params.optimizer.value}, Momentum={schema_training_params.momentum}, WeightDecay={schema_training_params.weight_decay}")
     except ValueError as e:
         print(f"Error loading model schema: {e}")
@@ -254,7 +321,6 @@ def train_model(args):
             print(f"Error loading or evaluating best model: {load_error}")
     else:
         print(f"Could not find best model at expected path: {best_model_path}. Skipping final test evaluation.")
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train a CNN model defined by schema on a specified dataset.")

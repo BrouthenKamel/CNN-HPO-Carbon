@@ -12,9 +12,9 @@ from src.schema.training import OptimizerType
 AlexNetArchitecture = ModelArchitecture(
     cnn_blocks=[
         CNNBlock(
-            conv_layer=ConvLayer(filters=96, kernel_size=5, stride=1, padding=2),
+            conv_layer=ConvLayer(filters=96, kernel_size=11, stride=4, padding=2),
             activation_layer=ActivationLayer(type=ActivationType.RELU.value),
-            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=2, stride=2, padding=0),
+            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=3, stride=2, padding=0),
             batch_norm_layer=None
         ),
         CNNBlock(
@@ -38,13 +38,13 @@ AlexNetArchitecture = ModelArchitecture(
         CNNBlock(
             conv_layer=ConvLayer(filters=256, kernel_size=3, stride=1, padding=1),
             activation_layer=ActivationLayer(type=ActivationType.RELU.value),
-            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=2, stride=2, padding=0),
+            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=3, stride=2, padding=0),
             batch_norm_layer=None
         ),
     ],
     adaptive_pooling_layer=AdaptivePoolingLayer(
         type=PoolingType.AVG.value,
-        output_size=3
+        output_size=6
     ),
     mlp_blocks=[
         MLPBlock(
@@ -62,7 +62,7 @@ AlexNetArchitecture = ModelArchitecture(
         epochs=10,
         batch_size=32,
         learning_rate=0.001,
-        optimizer=OptimizerType.SGD.value,
+        optimizer=OptimizerType.ADAM.value,
         momentum=None,
         weight_decay=None
     )

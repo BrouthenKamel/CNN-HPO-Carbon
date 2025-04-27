@@ -7,6 +7,7 @@ def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
 
     if dataset_name in ['MNIST', 'FashionMNIST']:
         transform = transforms.Compose([
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ])
@@ -14,8 +15,9 @@ def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
         num_classes = 10
     elif dataset_name in ['CIFAR10', 'CIFAR100']:
         transform = transforms.Compose([
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         in_channels = 3
         num_classes = 10 if dataset_name == 'CIFAR10' else 100
@@ -34,7 +36,7 @@ def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
 
     train_dataset = dataset_class(root=data_dir, train=True, download=True, transform=transform)
     test_dataset = dataset_class(root=data_dir, train=False, download=True, transform=transform)    
-    
+
     return Dataset(
         name=dataset_name,
         train_dataset=train_dataset,
