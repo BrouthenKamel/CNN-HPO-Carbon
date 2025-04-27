@@ -17,8 +17,8 @@ VGG11Architecture = ModelArchitecture(
         CNNBlock(
             conv_layer=dict(filters=64, kernel_size=3, stride=1, padding=1), 
             activation_layer=dict(type=ActivationType.RELU.value),
+            pooling_layer=dict(type=PoolingType.MAX.value, kernel_size=2, stride=2, padding=0),
             batch_norm_layer=dict(),
-            pooling_layer=dict(type=PoolingType.MAX.value, kernel_size=2, stride=2, padding=0)
         ),
         CNNBlock(
             conv_layer=dict(filters=128, kernel_size=3, stride=1, padding=1), 

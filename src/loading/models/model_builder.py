@@ -1,21 +1,10 @@
-import torch.nn as nn
 from typing import Union, Type
-import os
-import sys
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.abspath(os.path.join(current_dir, os.pardir, os.pardir))
-if src_dir not in sys.path:
-    sys.path.append(src_dir)
+import torch.nn as nn
 
-from schema.model import ModelArchitecture
-from schema.block import ResNetBlock
-from schema.layer import ( PoolingType,
-    ActivationType, PaddingType
-)
-from .alexnet import AlexNetArchitecture
-from .vgg import VGG11Architecture
-from .resnet import ResNet18Architecture
+from src.schema.model import ModelArchitecture
+from src.schema.block import ResNetBlock
+from src.schema.layer import PoolingType, ActivationType, PaddingType
 
 def _get_activation(activation_type_str: str) -> nn.Module:
     activation_type = ActivationType(activation_type_str)
@@ -103,13 +92,15 @@ def create_model(model_architecture: ModelArchitecture, in_channels: int, num_cl
     """
     Builds a PyTorch nn.Module from a ModelArchitecture schema, now supporting ResNetBlocks.
     """
-    class DynamicModel(nn.Module):
+    class Model(nn.Module):
+        
         def __init__(self):
             super().__init__()
+            
             self.feature_extractor_layers = nn.ModuleList()
             current_channels = in_channels
-
             initial_layers_defined = False
+            
             if model_architecture.initial_conv_layer:
                 initial_layers_defined = True
                 conv_schema = model_architecture.initial_conv_layer
@@ -241,30 +232,6 @@ def create_model(model_architecture: ModelArchitecture, in_channels: int, num_cl
             x = self.classifier(x)
             return x
 
-    model = DynamicModel()
+    model = Model()
+    
     return model
-
-def load_model_architecture(model_name: str) -> ModelArchitecture:
-    """
-    Loads the original, pre-defined architecture schema of the specified model.
-
-    Args:
-        model_name (str): The name of the model architecture to load ('AlexNet', 'ResNet', 'VGG').
-
-    Returns:
-        ModelArchitecture: The loaded model architecture schema object.
-
-    Raises:
-        ValueError: If the model_name is not supported.
-    """
-    if model_name == 'AlexNet':
-        schema = AlexNetArchitecture  
-    elif model_name == 'ResNet':
-        schema = ResNet18Architecture
-    elif model_name == 'VGG':
-        schema = VGG11Architecture 
-    else:
-        raise ValueError(f"Unsupported model: {model_name}. Choose from 'AlexNet', 'ResNet', 'VGG'.")
-
-    print(f"Successfully loaded {model_name} architecture schema.")
-    return schema 

@@ -5,52 +5,30 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 import time
 import os
-import sys
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
-project_root = os.path.abspath(os.path.join(src_dir, os.pardir))
+from src.loading.data.loader import load_dataset
+from src.loading.models.model_builder import create_model
+from src.schema.training import OptimizerType, TrainingParams
+from src.loading.models.alexnet import AlexNetArchitecture
 
-if src_dir not in sys.path:
-    sys.path.append(src_dir)
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
-try:
-    from loading.data.loader import load_dataset
-    from loading.models.model_builder import create_model, load_model_architecture
-    from schema.training import OptimizerType, Training
-except ImportError:
-    from src.loading.data.loader import load_dataset
-    from src.loading.models.model_builder import create_model, load_model_architecture
-    from src.schema.training import OptimizerType, Training
-
-def get_optimizer(optimizer_type_str: str, model_params, lr: float, momentum: float = None, weight_decay: float = None) -> optim.Optimizer:
-    """Creates an optimizer based on the specified type and parameters."""
-    try:
-        optimizer_type = OptimizerType(optimizer_type_str)
-    except ValueError:
-        raise ValueError(f"Invalid optimizer type string: {optimizer_type_str}. Choose from {[opt.value for opt in OptimizerType]}")
-
-    if optimizer_type == OptimizerType.SGD:
-        kwargs = {'lr': lr}
-        if momentum is not None:
-            kwargs['momentum'] = momentum
-        if weight_decay is not None:
-            kwargs['weight_decay'] = weight_decay
-        return optim.SGD(model_params, **kwargs)
-    elif optimizer_type == OptimizerType.ADAM:
-        kwargs = {'lr': lr}
-        if weight_decay is not None:
-            kwargs['weight_decay'] = weight_decay
-        return optim.Adam(model_params, **kwargs)
-    elif optimizer_type == OptimizerType.RMSPROP:
-        momentum_val = momentum if momentum is not None else 0
-        weight_decay_val = weight_decay if weight_decay is not None else 0
-        return optim.RMSprop(model_params, lr=lr, weight_decay=weight_decay_val, momentum=momentum_val)
-    else:
-        raise ValueError(f"Unsupported optimizer type: {optimizer_type}")
-
+def get_optimizer(model: nn.Module,training_params: TrainingParams):
+    
+    kwargs = {}
+    if training_params.learning_rate is not None:
+        kwargs['lr'] = training_params.learning_rate
+    if training_params.momentum is not None:
+        kwargs['momentum'] = training_params.momentum
+    if training_params.weight_decay is not None:
+        kwargs['weight_decay'] = training_params.weight_decay
+        
+    if training_params.optimizer == OptimizerType.SGD:
+        return optim.SGD(model.parameters(), **kwargs)
+    elif training_params.optimizer == OptimizerType.ADAM:
+        return optim.Adam(model.parameters(), **kwargs)
+    elif training_params.optimizer == OptimizerType.RMSPROP:
+        return optim.RMSprop(model.parameters(), **kwargs)
+    elif training_params.optimizer == OptimizerType.ADGARAD:
+        return optim.Adagrad(model.parameters(), **kwargs)
 
 def train_model(args):
     """

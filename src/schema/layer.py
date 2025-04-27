@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union
+from typing import Union, Optional
 from pydantic import BaseModel
 
 class ActivationType(str, Enum):
@@ -42,7 +42,7 @@ class LinearLayer(BaseModel):
     neurons: int
 
 class BatchNormLayer(BaseModel):
-    num_features: int = None  # Make optional for initialization without knowing channels
+    num_features: Optional[int] = None  # Make optional for initialization without knowing channels
     eps: float = 1e-5
     momentum: float = 0.1
     affine: bool = True

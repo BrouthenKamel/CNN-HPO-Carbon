@@ -8,7 +8,7 @@ class OptimizerType(str, Enum):
     RMSPROP = 'rmsprop'
     ADAGRAD = 'adagrad'
 
-class Training(BaseModel):
+class TrainingParams(BaseModel):
     epochs: int
     batch_size: int
     learning_rate: float
