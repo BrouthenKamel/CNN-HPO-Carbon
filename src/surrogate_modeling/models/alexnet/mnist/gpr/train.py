@@ -7,7 +7,7 @@ import joblib
 from sklearn.linear_model import LinearRegression
 
 # 1. Load the full dataset
-df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[0:2]
+df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[0:4]
 
 # 2. Drop unwanted column and rows with no target
 df.drop(columns=['train_accuracy'], inplace=True, errors='ignore')

@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeRegressor
 import joblib
 
 # 1. Load the full dataset
-df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[0:5]
+df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[0:4]
 
 # 2. Drop unwanted column and rows with no target
 df.drop(columns=['train_accuracy'], inplace=True, errors='ignore')
@@ -26,12 +26,12 @@ X[cat_cols] = zero_imp.fit_transform(X[cat_cols])
 # 5. One-hot encode categoricals
 X = pd.get_dummies(X, drop_first=True)
 
-# 6. Train the Linear Regression model
-lr = LinearRegression()
-lr.fit(X, y)
+# 6. Train the Decision Tree model
+tree = DecisionTreeRegressor(random_state=42)
+tree.fit(X, y)
 
 # 7. Save model
-joblib.dump((lr, X.columns.tolist()), './models/alexnet/mnist/lr/lr_model.pkl')
+joblib.dump((tree, X.columns.tolist()), './models/alexnet/mnist/dt/tree_model.pkl')
 
 # 8. Summary
-print(f"Model trained. R^2 Score on training data: {lr.score(X, y):.4f}")
+print(f"Model trained. R^2 Score on training data: {tree.score(X, y):.4f}")

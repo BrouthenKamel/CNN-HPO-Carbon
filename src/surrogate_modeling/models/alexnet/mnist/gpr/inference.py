@@ -9,7 +9,7 @@ def predict():
     training_columns = joblib.load('./models/alexnet/mnist/gpr/training_columns_gpr_model.pkl')
 
     # 2. Load the input data for inference
-    df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[2:3]
+    df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[4:6]
 
     # 3. Preprocess: drop target (if exists), and keep a copy if you want to compare later
     y_true = df['test_accuracy'] if 'test_accuracy' in df else None
