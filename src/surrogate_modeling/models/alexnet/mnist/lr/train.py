@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 import joblib
 
 # 1. Load the full dataset
-df = pd.read_csv('./datasets/accus/alexnet_mnist.csv').iloc[0:5]
+df = pd.read_csv('./src/surrogate_modeling/datasets/accus/alexnet_mnist.csv').iloc[0:5]
 
 # 2. Drop unwanted column and rows with no target
 df.drop(columns=['train_accuracy'], inplace=True, errors='ignore')
@@ -31,7 +31,7 @@ lr = LinearRegression()
 lr.fit(X, y)
 
 # 7. Save model
-joblib.dump((lr, X.columns.tolist()), './models/alexnet/mnist/lr/lr_model.pkl')
+joblib.dump((lr, X.columns.tolist()), './src/surrogate_modeling/datasets/accus/alexnet_mnist.csv')
 
 # 8. Summary
 print(f"Model trained. R^2 Score on training data: {lr.score(X, y):.4f}")
