@@ -10,7 +10,7 @@ from src.schema.model import ModelFamily
 from src.schema.training import TrainingParams, OptimizerType
 
 training_params = TrainingParams(
-    epochs = 2,
+    epochs = 1,
     batch_size = 64,
     learning_rate = 0.001,
     optimizer = OptimizerType.ADAM,
@@ -18,8 +18,9 @@ training_params = TrainingParams(
     weight_decay = None
 )
     
-for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
-    
+# for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
+for dataset_name in [DatasetName.CIFAR10]:
+
     dataset = load_dataset(dataset_name)
     
     for family in [
@@ -33,6 +34,7 @@ for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
     ]:
         
         for pretrained in [True, False]:
+            
             print()
             
             print(f"Training ({family.value}) on ({dataset_name.value}) with pretrained={pretrained}")
