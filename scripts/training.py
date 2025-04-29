@@ -10,30 +10,30 @@ from src.schema.model import ModelFamily
 from src.schema.training import TrainingParams, OptimizerType
 
 training_params = TrainingParams(
-    epochs = 1,
-    batch_size = 64,
+    epochs = 5,
+    batch_size = 32,
     learning_rate = 0.001,
     optimizer = OptimizerType.ADAM,
     momentum = None,
     weight_decay = None
 )
     
-# for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
-for dataset_name in [DatasetName.CIFAR10]:
+for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
+# for dataset_name in [DatasetName.CIFAR10]:
 
     dataset = load_dataset(dataset_name)
     
     for family in [
-        ModelFamily.RESNET,
+        # ModelFamily.RESNET,
         ModelFamily.EFFICIENTNET,
-        ModelFamily.MOBILENET,
-        ModelFamily.DENSENET,
-        ModelFamily.REGNET,
-        ModelFamily.SQUEEZENET,
-        ModelFamily.VGG,
+        # ModelFamily.MOBILENET,
+        # ModelFamily.DENSENET,
+        # ModelFamily.REGNET,
+        # ModelFamily.SQUEEZENET,
+        # ModelFamily.VGG,
     ]:
         
-        for pretrained in [True, False]:
+        for pretrained in [True]:
             
             print()
             

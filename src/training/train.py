@@ -79,6 +79,7 @@ def train_model(model: nn.Module, dataset: Dataset, training_params: TrainingPar
 
         print(f"Epoch {epoch+1} | Train Loss: {train_loss/len(train_loader):.4f} | Train Accuracy: {100 * train_correct/train_total:.2f}%")
 
+    torch.cuda.empty_cache()
     print("Finished Training")
 
     model.eval()
