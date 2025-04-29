@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from enum import Enum
 
 from src.schema.layer import AdaptivePoolingLayer, ConvLayer, PoolingLayer, BatchNormLayer
 from src.schema.block import CNNBlock, MLPBlock, ResNetBlock
@@ -15,3 +16,12 @@ class ModelArchitecture(BaseModel):
     adaptive_pooling_layer: Optional[AdaptivePoolingLayer] = None
     mlp_blocks: List[MLPBlock] = []
     training_params: TrainingParams
+    
+class ModelFamily(str, Enum):
+    VGG = "VGG"
+    RESNET = "RESNET"
+    EFFICIENTNET = "EFFICIENTNET"
+    MOBILENET = "MOBILENET"
+    DENSENET = "DENSENET"
+    REGNET = "REGNET"
+    SQUEEZENET = "SQUEEZENET"

@@ -13,14 +13,22 @@ def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
         ])
         in_channels = 1
         num_classes = 10
-    elif dataset_name in ['CIFAR10', 'CIFAR100']:
+    elif dataset_name == 'CIFAR10':
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
         ])
         in_channels = 3
-        num_classes = 10 if dataset_name == 'CIFAR10' else 100
+        num_classes = 10
+    elif dataset_name == 'CIFAR100':
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5071, 0.4865, 0.4409), (0.2673, 0.2564, 0.2762))
+        ])
+        in_channels = 3
+        num_classes = 100
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}. Choose from 'MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100'.")
 
