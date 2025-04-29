@@ -24,13 +24,13 @@ for dataset_name in [DatasetName.CIFAR10]:
     dataset = load_dataset(dataset_name)
     
     for family in [
-        ModelFamily.VGG,
         ModelFamily.RESNET,
         ModelFamily.EFFICIENTNET,
         ModelFamily.MOBILENET,
         ModelFamily.DENSENET,
         ModelFamily.REGNET,
-        ModelFamily.SQUEEZENET
+        ModelFamily.SQUEEZENET,
+        ModelFamily.VGG,
     ]:
         
         for pretrained in [True, False]:
