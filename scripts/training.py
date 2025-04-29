@@ -1,4 +1,4 @@
-
+import time
 
 from src.loading.data.loader import load_dataset
 from src.schema.dataset import DatasetName
@@ -10,8 +10,8 @@ from src.schema.model import ModelFamily
 from src.schema.training import TrainingParams, OptimizerType
 
 training_params = TrainingParams(
-    epochs = 10,
-    batch_size = 32,
+    epochs = 2,
+    batch_size = 64,
     learning_rate = 0.001,
     optimizer = OptimizerType.ADAM,
     momentum = None,
@@ -33,9 +33,18 @@ for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
     ]:
         
         for pretrained in [True, False]:
+            print()
             
-            print(f"Training {family} on {dataset_name} with pretrained={pretrained}")
+            print(f"Training ({family.value}) on ({dataset_name.value}) with pretrained={pretrained}")
             
             model = load_pretrained_model(family, pretrained)
             
+            s = time.time()
+            
             train_model(model, dataset, training_params)
+            
+            e = time.time()
+            
+            print(f"Training time: {(e - s) / 60:.2f} minutes")
+            
+            print ("=" * 20)
