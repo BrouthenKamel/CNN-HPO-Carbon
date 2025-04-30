@@ -109,9 +109,9 @@ def featurize_model_architecture(ma: ModelArchitecture) -> pd.DataFrame:
         features[f"{prefix}_neurons"] = (
             block.linear_layer.neurons if block.linear_layer else 0
         )
-        features[f"{prefix}_activation"] = (
-            block.activation_layer.type.value if block.activation_layer else None
-        )
+        # features[f"{prefix}_activation"] = (
+        #     block.activation_layer.type.value if block.activation_layer else None
+        # )
 
     # 4) Training hyperparameters
     tr = ma.training
@@ -119,7 +119,7 @@ def featurize_model_architecture(ma: ModelArchitecture) -> pd.DataFrame:
         "epochs":       tr.epochs,
         "batch_size":   tr.batch_size,
         "learning_rate":tr.learning_rate,
-        "optimizer":    tr.optimizer.value,
+        # "optimizer":    tr.optimizer.value,
     })
 
     # Return as single‐row DataFrame

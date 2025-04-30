@@ -23,14 +23,15 @@ def run_mnist(csv_path, row, result_csv_path, device='cuda'):
     learning_rate = float(config['learning_rate'])
     num_epochs = int(config['num_epochs'])
 
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     # Optimizer selection
-    optimizer_type = config['optimizer'].lower()
-    if optimizer_type == 'sgd':
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
-    elif optimizer_type == 'adam':
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    else:
-        raise ValueError(f"Unsupported optimizer: {optimizer_type}")
+    # optimizer_type = config['optimizer'].lower()
+    # if optimizer_type == 'sgd':
+    #     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+    # elif optimizer_type == 'adam':
+    #     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # else:
+    #     raise ValueError(f"Unsupported optimizer: {optimizer_type}")
 
     # Loss function (cross-entropy for classification)
     criterion = nn.CrossEntropyLoss()
@@ -49,7 +50,7 @@ def run_mnist(csv_path, row, result_csv_path, device='cuda'):
         'learning_rate': [learning_rate],
         'num_epochs': [num_epochs],
         'batch_size': [batch_size],
-        'optimizer': [optimizer_type],
+        # 'optimizer': [optimizer_type],
         'train_accuracy': [train_accuracy],
         'test_accuracy': [test_accuracy]
     })

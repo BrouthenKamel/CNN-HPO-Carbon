@@ -38,10 +38,10 @@ class CustomAlexNet(nn.Module):
             current_w = (current_w - ks + 2 * padding) // stride + 1
 
             if i in {1, 2}:  # Local Response Normalization for layers 1 and 2
-                n = int(config[f'clb{i}_lrn_n'])
-                k = float(config[f'clb{i}_lrn_k'])
-                alpha = float(config[f'clb{i}_lrn_alpha'])
-                beta = float(config[f'clb{i}_lrn_beta'])
+                n = 5
+                k = n
+                alpha = 1e-4
+                beta = 0.75
                 layers.append(nn.LocalResponseNorm(n, alpha=alpha, beta=beta, k=k))
 
             if i in {1, 2, 5}:  # Only layers 1, 2, and 5 have pooling
@@ -72,11 +72,11 @@ class CustomAlexNet(nn.Module):
 
             fc = nn.Linear(in_features, neurons)
 
-            init = config[f'fc{i}_init'].lower()
-            if init == 'xavier':
-                nn.init.xavier_uniform_(fc.weight)
-            elif init == 'kaiming':
-                nn.init.kaiming_uniform_(fc.weight, nonlinearity='relu')
+            # init = config[f'fc{i}_init'].lower()
+            # if init == 'xavier':
+            #     nn.init.xavier_uniform_(fc.weight)
+            # elif init == 'kaiming':
+            #     nn.init.kaiming_uniform_(fc.weight, nonlinearity='relu')
 
             fc_layers.append(fc)
 
