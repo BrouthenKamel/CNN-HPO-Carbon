@@ -9,7 +9,7 @@ from enum import Enum
 from src.schema.model import ModelArchitecture
 from src.schema.block import CNNBlock, MLPBlock
 from src.schema.layer import ConvLayer, PoolingLayer, PoolingType, DropoutLayer, LinearLayer, ActivationLayer, ActivationType, PaddingType, AdaptivePoolingLayer
-from src.schema.training import Training, OptimizerType
+from src.schema.training import TrainingParams, OptimizerType
 
 from pydantic import BaseModel
 
@@ -35,7 +35,11 @@ search_space = {
 # uncomment the printing messages to check the values modified
 # the method is robust to adding new features to layer.py or block.py or any other class defining file
 
-def modify_value(object):
+def modify_value(object, block_modification_ratio = 0.5,search_space = search_space, perturbation_intensity = 1, perturbation_nature = "Local"):
+    # perturbation_intensity [1, 2, ...] : if a given block will be modified, this parameter will decide how many hyperparameters to change, by default it is 1 hyperparameter per block
+    # perturbation_nature ["Local","Random"] : if a hyperparamter will be modified, this parameter will decide whether to tweak it to a relatively close value "Local", or select randomly a new value off the hyperparameter's search space "Random"
+
+
     # if we are dealing with a list, such as a list of CNNBlocks then we will call the recursive function on each element
     if (isinstance(object, list)):
         for element in object:
@@ -43,44 +47,45 @@ def modify_value(object):
     # if we are dealing with a BaseModel type, we will modify its content with a 50 50 chance
     elif (isinstance(object,BaseModel)):
         p = random.uniform(0, 1)
-        if p<0.5:
+        if p<block_modification_ratio:
             component_keys = type(object).model_fields.keys()
             modifiable_keys = list(component_keys)
-            # we have to keep only the modifiable componenets of the object
+            # we have to keep only the modifiable components of the object
             for component_key in component_keys : 
                 if(getattr(object,component_key)== None):
                     modifiable_keys.remove(component_key)
             
-            # then we will select at random one of the objects to be modified
-            if len(modifiable_keys)!=0:
-                component_key_to_be_modified = random.choice(modifiable_keys)
-                new_object = getattr(object,component_key_to_be_modified)
-                # if this componenet happens to also be a list or a BaseModel, we recursively modify
-                if ( isinstance(new_object,list) or isinstance(new_object,BaseModel)):
-                    modify_value(new_object)
-                # if not, this means we are dealing with floats, strings or enums, we will modify them directly
-                else :
-                    # Case one : we have ENUMs so we will modify them according to the ENUM values set in classes such as ActivationType
-                    if (issubclass(type(new_object),Enum)):
-                        possible_values = list(type(new_object))
-                        new_value = random.choice(possible_values)
-                        setattr(object,component_key_to_be_modified,new_value)
-                        #print('have modified ', component_key_to_be_modified, ' to ', new_value)
-                    # case two : we have values that are supposed to be a in a specefic range, in this case we move up or down the ladder with the value
-                    else:
-                        value_set = search_space[component_key_to_be_modified]
-                        old_value = new_object
-                        if old_value in value_set:
-                            old_index = value_set.index(old_value)
-                            new_offset = random.choice([-1,1])
-                            if old_index+new_offset >= 0 and old_index+new_offset < len(value_set) :
-                                new_value = value_set[old_index+new_offset]
-                                setattr(object,component_key_to_be_modified,new_value)
-                                #print('have modified ', component_key_to_be_modified, ' to ', new_value)
-                        else :
-                            new_value = random.choice(value_set)
+            for iter in range(perturbation_intensity):
+                # then we will select at random one of the objects to be modified
+                if len(modifiable_keys)!=0:
+                    component_key_to_be_modified = random.choice(modifiable_keys)
+                    new_object = getattr(object,component_key_to_be_modified)
+                    # if this componenet happens to also be a list or a BaseModel, we recursively modify
+                    if ( isinstance(new_object,list) or isinstance(new_object,BaseModel)):
+                        modify_value(new_object)
+                    # if not, this means we are dealing with floats, strings or enums, we will modify them directly
+                    else :
+                        # Case one : we have ENUMs so we will modify them according to the ENUM values set in classes such as ActivationType
+                        if (issubclass(type(new_object),Enum)):
+                            possible_values = list(type(new_object))
+                            new_value = random.choice(possible_values)
                             setattr(object,component_key_to_be_modified,new_value)
-                            #print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                            print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                        # case two : we have values that are supposed to be a in a specefic range, in this case we move up or down the ladder with the value
+                        else:
+                            value_set = search_space[component_key_to_be_modified]
+                            old_value = new_object
+                            if old_value in value_set and perturbation_nature=="Local":
+                                old_index = value_set.index(old_value)
+                                new_offset = random.choice([-1,1])
+                                if old_index+new_offset >= 0 and old_index+new_offset < len(value_set) :
+                                    new_value = value_set[old_index+new_offset]
+                                    setattr(object,component_key_to_be_modified,new_value)
+                                    print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                            else :
+                                new_value = random.choice(value_set)
+                                setattr(object,component_key_to_be_modified,new_value)
+                                print('have modified ', component_key_to_be_modified, ' to ', new_value)
 
 
 
@@ -133,7 +138,7 @@ AlexNetArchitecture = ModelArchitecture(
             activation_layer=ActivationLayer(type=ActivationType.RELU.value),
         )
     ],
-    training=Training(
+    training_params=TrainingParams(
         epochs=10,
         batch_size=32,
         learning_rate=0.001,
@@ -145,11 +150,12 @@ AlexNetArchitecture = ModelArchitecture(
 
 
 # set the blocks that you will modify, if say you want to modify cnn_blocks only just mention cnn_blocks in the list below
-to_modify = ['cnn_blocks', 'adaptive_pooling_layer','mlp_blocks','training']
+to_modify = ['cnn_blocks', 'adaptive_pooling_layer','mlp_blocks','training_params']
 
 for bloc in to_modify:
     element = getattr(AlexNetArchitecture,bloc)
-    modify_value(element)
+    modify_value(element,block_modification_ratio=0.5,perturbation_intensity=3,perturbation_nature="Random")
+
 
 
 # AlexNetArchitecutre will be then modified, you can check by adding print(AlexNetArchitecture), in addition to uncommenting
