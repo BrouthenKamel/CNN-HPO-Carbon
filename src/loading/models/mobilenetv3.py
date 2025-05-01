@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
+from torchvision import models
 from functools import partial
+from typing import List
 
-def _make_divisible(v, divisor, min_value=None):
+def _make_divisible(v, divisor=8, min_value=None):
     if min_value is None:
         min_value = divisor
     new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
@@ -10,59 +12,106 @@ def _make_divisible(v, divisor, min_value=None):
         new_v += divisor
     return new_v
 
-class SqueezeExcitation(nn.Module):
-    def __init__(self, input_channels, squeeze_channels):
+class SqueezeExcitation(nn.Module): # squeeze channels, activation_layer
+    def __init__(self, in_channels, squeeze_channels, activation_layer): # Hardsigmoid, Sigmoid
         super().__init__()
-        self.fc1 = nn.Conv2d(input_channels, squeeze_channels, 1)
+        self.fc1 = nn.Conv2d(in_channels, squeeze_channels, 1)
         self.relu = nn.ReLU(inplace=True)
-        self.fc2 = nn.Conv2d(squeeze_channels, input_channels, 1)
-        self.hsigmoid = nn.Hardsigmoid(inplace=True)
+        self.fc2 = nn.Conv2d(squeeze_channels, in_channels, 1)
+        self.activation = activation_layer(inplace=True)
 
     def forward(self, x):
         scale = self.fc1(x.mean((2, 3), keepdim=True))
         scale = self.relu(scale)
         scale = self.fc2(scale)
-        scale = self.hsigmoid(scale)
+        scale = self.activation(scale)
         return x * scale
 
 class ConvBNActivation(nn.Sequential):
-    def __init__(self, in_planes, out_planes, kernel_size=3, stride=1, groups=1, norm_layer=None, activation_layer=None, dilation=1):
-        padding = (kernel_size - 1) // 2 * dilation
-        if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
-        if activation_layer is None:
-            activation_layer = nn.ReLU
-
+    def __init__(self, in_channels, out_channels, kernel_size, norm_layer, activation_layer, stride=1, padding=0, groups=1):
+        
         super().__init__(
-            nn.Conv2d(in_planes, out_planes, kernel_size, stride, padding, dilation=dilation, groups=groups, bias=False),
-            norm_layer(out_planes),
-            activation_layer(inplace=True)
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, groups=groups, bias=False), norm_layer(out_channels), activation_layer(inplace=True)
         )
+        
+class SqueezeExcitationConfig:
+    def __init__(self, squeeze_factor: int = 4, activation_layer: str = "Hardsigmoid"):
+        self.squeeze_factor = squeeze_factor
+        self.activation_layer = self.get_activation_layer(activation_layer)
+        
+    def get_activation_layer(self, activation_layer):
+        if activation_layer == "Hardsigmoid":
+            return nn.Hardsigmoid
+        elif activation_layer == "Sigmoid":
+            return nn.Sigmoid
+        else:
+            raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
+        
+class ConvBNActivationConfig:
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int,
+                 norm_layer: str = "BatchNorm2d", activation_layer: str = "ReLU", eps: float = None, momentum: float = None, ignore_in_channels: bool = False):
+        if ignore_in_channels:
+            self.in_channels = in_channels
+        else:
+            self.in_channels = _make_divisible(in_channels, 8)
+        self.out_channels = _make_divisible(out_channels, 8)
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
+        self.norm_layer = self.get_norm_layer(norm_layer, eps, momentum)
+        
+        self.activation_layer = self.get_activation_layer(activation_layer)
+        
+    def get_norm_layer(self, norm_layer, eps, momentum):
+        if norm_layer == "BatchNorm2d":
+            kwargs = {}
+            if eps != None:
+                kwargs['eps'] = eps
+            if momentum != None:
+                kwargs['momentum'] = momentum
+            return partial(nn.BatchNorm2d, **kwargs)
+        else:
+            raise ValueError(f"Unsupported normalization layer: {self.norm_layer}")
+        
+    def get_activation_layer(self, activation_layer):
+        if activation_layer == "ReLU":
+            return nn.ReLU
+        elif activation_layer == "Hardswish":
+            return nn.Hardswish
+        else:
+            raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
+
+class InvertedResidualConfig:
+    def __init__(self, expand_channels: int, use_se: bool, se_config: SqueezeExcitationConfig, conv_bn_activation_config: ConvBNActivationConfig):
+        self.use_se = use_se
+        self.se_config = se_config
+        self.conv_bn_activation_config = conv_bn_activation_config
+        self.expanded_channels = _make_divisible(expand_channels, 8)
 
 class InvertedResidual(nn.Module):
-    def __init__(self, config, norm_layer):
+    def __init__(self, config: InvertedResidualConfig):
+        
         super().__init__()
-        self.use_res_connect = config.stride == 1 and config.input_channels == config.out_channels
+        
+        self.use_res_connect = config.conv_bn_activation_config.stride == 1 and config.conv_bn_activation_config.in_channels == config.conv_bn_activation_config.out_channels
 
         layers = []
-        activation_layer = nn.Hardswish if config.use_hs else nn.ReLU
 
-        if config.expanded_channels != config.input_channels:
+        if config.expanded_channels != config.conv_bn_activation_config.in_channels:
             layers.append(
-                ConvBNActivation(config.input_channels, config.expanded_channels, kernel_size=1, norm_layer=norm_layer, activation_layer=activation_layer)
+                ConvBNActivation(config.conv_bn_activation_config.in_channels, config.expanded_channels, kernel_size=1, norm_layer=config.conv_bn_activation_config.norm_layer, activation_layer=config.conv_bn_activation_config.activation_layer, stride=1, padding=0)
             )
 
         layers.append(
-            ConvBNActivation(config.expanded_channels, config.expanded_channels, kernel_size=config.kernel, stride=config.stride,
-                             groups=config.expanded_channels, norm_layer=norm_layer, activation_layer=activation_layer, dilation=config.dilation)
+            ConvBNActivation(config.expanded_channels, config.expanded_channels, kernel_size=config.conv_bn_activation_config.kernel_size, stride=config.conv_bn_activation_config.stride, padding=config.conv_bn_activation_config.padding, groups=config.expanded_channels, norm_layer=config.conv_bn_activation_config.norm_layer, activation_layer=config.conv_bn_activation_config.activation_layer)
         )
 
         if config.use_se:
-            squeeze_channels = _make_divisible(config.expanded_channels // 4, 8)
-            layers.append(SqueezeExcitation(config.expanded_channels, squeeze_channels))
+            squeeze_channels = _make_divisible(config.expanded_channels // config.se_config.squeeze_factor, 8)
+            layers.append(SqueezeExcitation(config.expanded_channels, squeeze_channels, config.se_config.activation_layer))
 
         layers.append(
-            ConvBNActivation(config.expanded_channels, config.out_channels, kernel_size=1, norm_layer=norm_layer, activation_layer=None)
+            ConvBNActivation(config.expanded_channels, config.conv_bn_activation_config.out_channels, kernel_size=1, norm_layer=config.conv_bn_activation_config.norm_layer, activation_layer=config.conv_bn_activation_config.activation_layer, stride=1, padding=0)
         )
 
         self.block = nn.Sequential(*layers)
@@ -73,72 +122,263 @@ class InvertedResidual(nn.Module):
             result = result + x
         return result
 
-class InvertedResidualConfig:
-    def __init__(self, input_c, kernel, expand_c, out_c, use_se, act, stride, dilation, width_mult):
-        self.input_channels = _make_divisible(input_c * width_mult, 8)
-        self.kernel = kernel
-        self.expanded_channels = _make_divisible(expand_c * width_mult, 8)
-        self.out_channels = _make_divisible(out_c * width_mult, 8)
-        self.use_se = use_se
-        self.use_hs = act == "HS"
-        self.stride = stride
-        self.dilation = dilation
+class ClassifierConfig:
+    def __init__(self, neurons: int, activation_layer: str, dropout_rate: float):
+        
+        self.neurons = neurons
+        self.activation_layer = self.get_activation_layer(activation_layer)
+        self.dropout_rate = dropout_rate
+    
+    def get_activation_layer(self, activation_layer):
+        if activation_layer == "ReLU":
+            return nn.ReLU
+        elif activation_layer == "Hardswish":
+            return nn.Hardswish
+        else:
+            raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
+
+class MobileNetConfig:
+    def __init__(self, initial_conv_config: ConvBNActivationConfig, last_conv_upsample: int, last_conv_config: ConvBNActivationConfig, inverted_residual_configs: list[InvertedResidualConfig], classifier_config: ClassifierConfig):
+        
+        self.initial_conv_config = initial_conv_config
+        self.inverted_residual_configs = inverted_residual_configs
+        self.last_conv_upsample = last_conv_upsample
+        self.last_conv_config = last_conv_config
+        self.classifier_config = classifier_config
 
 class MobileNetV3Small(nn.Module):
-    def __init__(self, num_classes=1000, width_mult=1.0, reduced_tail=False, dilated=False, weights=None):
+    
+    def __init__(self, num_classes=1000, weights=None):
         super().__init__()
-        norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.01)
-        reduce_divider = 2 if reduced_tail else 1
-        dilation = 2 if dilated else 1
-
-        bneck_conf = partial(InvertedResidualConfig, width_mult=width_mult)
-        adjust_channels = partial(_make_divisible, divisor=8)
-
-        # Configuration copied from torchvision
-        layers_config = [
-            bneck_conf(16, 3, 16, 16, True, "RE", 2, 1),
-            bneck_conf(16, 3, 72, 24, False, "RE", 2, 1),
-            bneck_conf(24, 3, 88, 24, False, "RE", 1, 1),
-            bneck_conf(24, 5, 96, 40, True, "HS", 2, 1),
-            bneck_conf(40, 5, 240, 40, True, "HS", 1, 1),
-            bneck_conf(40, 5, 240, 40, True, "HS", 1, 1),
-            bneck_conf(40, 5, 120, 48, True, "HS", 1, 1),
-            bneck_conf(48, 5, 144, 48, True, "HS", 1, 1),
-            bneck_conf(48, 5, 288, 96 // reduce_divider, True, "HS", 2, dilation),
-            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, True, "HS", 1, dilation),
-            bneck_conf(96 // reduce_divider, 5, 576 // reduce_divider, 96 // reduce_divider, True, "HS", 1, dilation),
+        
+        inverted_residual_configs = [
+                        
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=16,
+                    out_channels=16,
+                    kernel_size=3,
+                    stride=2,
+                    padding=1,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="ReLU"
+                ),
+                expand_channels=16,
+            ),
+                        
+            InvertedResidualConfig(
+                use_se = False,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=16,
+                    out_channels=24,
+                    kernel_size=3,
+                    stride=2,
+                    padding=1,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="ReLU"
+                ),
+                expand_channels=72,
+            ),
+                        
+            InvertedResidualConfig(
+                use_se = False,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=24,
+                    out_channels=24,
+                    kernel_size=3,
+                    stride=1,
+                    padding=1,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=88,
+            ),
+                        
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=24,
+                    out_channels=40,
+                    kernel_size=5,
+                    stride=2,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=96,
+            ),
+                        
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=40,
+                    out_channels=40,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=240,
+            ),
+            
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=40,
+                    out_channels=40,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=240,
+            ),
+            
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=40,
+                    out_channels=48,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=120,
+            ),
+            
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=48,
+                    out_channels=48,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=144,
+            ),
+            
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=48,
+                    out_channels=96,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=288,
+            ),
+            
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=96,
+                    out_channels=96,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=576,
+            ),
+                        
+            InvertedResidualConfig(
+                use_se = True,
+                se_config = SqueezeExcitationConfig(squeeze_factor=4, activation_layer="Hardsigmoid"),
+                conv_bn_activation_config = ConvBNActivationConfig(
+                    in_channels=96,
+                    out_channels=96,
+                    kernel_size=5,
+                    stride=1,
+                    padding=2,
+                    norm_layer="BatchNorm2d",
+                    activation_layer="Hardswish"
+                ),
+                expand_channels=576,
+            ),
         ]
-
-        layers = []
-        firstconv_out = layers_config[0].input_channels
-        layers.append(
-            ConvBNActivation(3, firstconv_out, kernel_size=3, stride=2, norm_layer=norm_layer, activation_layer=nn.Hardswish)
+        
+        last_conv_upsample = 6
+        
+        config = MobileNetConfig(
+            initial_conv_config=ConvBNActivationConfig(
+                in_channels=3,
+                out_channels=inverted_residual_configs[0].conv_bn_activation_config.in_channels,
+                kernel_size=3,
+                stride=2,
+                padding=1,
+                activation_layer='Hardswish',
+                norm_layer='BatchNorm2d',
+                eps=1e-3,
+                momentum=1e-2,
+                ignore_in_channels=True
+            ),
+            inverted_residual_configs=inverted_residual_configs,
+            last_conv_upsample=last_conv_upsample,
+            last_conv_config=ConvBNActivationConfig(
+                in_channels=inverted_residual_configs[-1].conv_bn_activation_config.out_channels,
+                out_channels=inverted_residual_configs[-1].conv_bn_activation_config.out_channels * last_conv_upsample,
+                kernel_size=1,
+                stride=1,
+                padding=0,
+                activation_layer='Hardswish',
+                norm_layer='BatchNorm2d',
+                eps=1e-3,
+                momentum=1e-2
+            ),
+            classifier_config=ClassifierConfig(
+                neurons=1024,
+                activation_layer='Hardswish',
+                dropout_rate=0.2
+            )
         )
 
-        for config in layers_config:
-            layers.append(InvertedResidual(config, norm_layer))
+        layers = []
 
-        lastconv_input = layers_config[-1].out_channels
-        lastconv_output = 6 * lastconv_input
         layers.append(
-            ConvBNActivation(lastconv_input, lastconv_output, kernel_size=1, norm_layer=norm_layer, activation_layer=nn.Hardswish)
+            ConvBNActivation(config.initial_conv_config.in_channels, config.initial_conv_config.out_channels, kernel_size=config.initial_conv_config.kernel_size, stride=config.initial_conv_config.stride, padding=config.initial_conv_config.padding, norm_layer=config.initial_conv_config.norm_layer, activation_layer=config.initial_conv_config.activation_layer)
+        )
+
+        for inverted_residual_config in config.inverted_residual_configs:
+            layers.append(InvertedResidual(inverted_residual_config))
+        
+        layers.append(
+            ConvBNActivation(config.last_conv_config.in_channels, config.last_conv_config.out_channels, kernel_size=config.last_conv_config.kernel_size, norm_layer=config.last_conv_config.norm_layer, activation_layer=config.last_conv_config.activation_layer)
         )
 
         self.features = nn.Sequential(*layers)
+        
         self.avgpool = nn.AdaptiveAvgPool2d(1)
 
-        last_channel = adjust_channels(1024 // reduce_divider)
         self.classifier = nn.Sequential(
-            nn.Linear(lastconv_output, last_channel),
-            nn.Hardswish(inplace=True),
-            nn.Dropout(p=0.2, inplace=True),
-            nn.Linear(last_channel, num_classes)
+            nn.Linear(config.last_conv_config.out_channels, config.classifier_config.neurons),
+            config.classifier_config.activation_layer(inplace=True),
+            nn.Dropout(p=config.classifier_config.dropout_rate, inplace=True),
+            nn.Linear(config.classifier_config.neurons, num_classes)
         )
 
-        if weights is None:
-            # self._initialize_weights()
-            pass
-        else:
+        if weights is not None:
             self.load_state_dict(weights.get_state_dict())
 
     def forward(self, x):
@@ -148,30 +388,8 @@ class MobileNetV3Small(nn.Module):
         x = self.classifier(x)
         return x
 
-    def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out')
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
-                nn.init.ones_(m.weight)
-                nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                nn.init.zeros_(m.bias)
-
 if __name__ == "__main__":
     
-    from torchvision import models
-    from torchvision.models import mobilenet_v3_small
+    custom_model = MobileNetV3Small(weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
     
-    # Get pretrained weights from torchvision
-    tv_model = mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
-    custom_model = MobileNetV3Small()
-    
-    custom_model_w = MobileNetV3Small(weights=tv_model.state_dict())
-
-    # Transfer weights
-    custom_model.load_state_dict(tv_model.state_dict())
     print("Loaded weights successfully!")

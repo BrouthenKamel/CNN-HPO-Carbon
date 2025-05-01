@@ -10,7 +10,7 @@ from src.schema.model import ModelFamily
 from src.schema.training import TrainingParams, OptimizerType
 
 training_params = TrainingParams(
-    epochs = 20,
+    epochs = 1,
     batch_size = 128,
     learning_rate = 0.001,
     optimizer = OptimizerType.ADAM,
@@ -18,23 +18,23 @@ training_params = TrainingParams(
     weight_decay = None
 )
 
-dataset_epochs = {
-    'pretrained': {
-        DatasetName.MNIST: 5,
-        DatasetName.FashionMNIST: 5,
-        DatasetName.CIFAR10: 5,
-        DatasetName.CIFAR100: 5,
-    },
-    'not_pretrained': {
-        DatasetName.MNIST: 5,
-        DatasetName.FashionMNIST: 5,
-        DatasetName.CIFAR10: 5,
-        DatasetName.CIFAR100: 5,
-    }
-}
+# dataset_epochs = {
+#     'pretrained': {
+#         DatasetName.MNIST: 5,
+#         DatasetName.FashionMNIST: 5,
+#         DatasetName.CIFAR10: 5,
+#         DatasetName.CIFAR100: 5,
+#     },
+#     'not_pretrained': {
+#         DatasetName.MNIST: 5,
+#         DatasetName.FashionMNIST: 5,
+#         DatasetName.CIFAR10: 5,
+#         DatasetName.CIFAR100: 5,
+#     }
+# }
     
 # for dataset_name in [DatasetName.MNIST, DatasetName.FashionMNIST, DatasetName.CIFAR10]:
-for dataset_name in [DatasetName.CIFAR100]:
+for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
 
     dataset = load_dataset(dataset_name)
     
