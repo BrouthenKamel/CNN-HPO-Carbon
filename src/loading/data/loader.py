@@ -8,10 +8,11 @@ def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
     if dataset_name in ['MNIST', 'FashionMNIST']:
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
+            transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
+            transforms.Normalize([0.5]*3, [0.5]*3)
         ])
-        in_channels = 1
+        in_channels = 3
         num_classes = 10
     elif dataset_name == 'CIFAR10':
         transform = transforms.Compose([

@@ -12,8 +12,13 @@ from src.loading.data.loader import load_dataset
 from src.loading.models.model_builder import create_model
 from src.schema.training import OptimizerType, TrainingParams
 from src.schema.dataset import Dataset
+
 # from src.loading.models.alexnet import AlexNetArchitecture
 # from src.loading.models.model_builder import load_model_architecture
+
+def count_parameters(model: torch.nn.Module) -> int:
+    n = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    return n / 1e6
 
 def get_optimizer(model: nn.Module, training_params: TrainingParams):
     
@@ -34,15 +39,59 @@ def get_optimizer(model: nn.Module, training_params: TrainingParams):
     elif training_params.optimizer == OptimizerType.ADGARAD:
         return optim.Adagrad(model.parameters(), **kwargs)
 
-def train_model(model: nn.Module, dataset: Dataset, training_params: TrainingParams):
+def evaluate_model(model: nn.Module, data_loader, criterion, device):
+    """
+    Evaluates the model on the provided data loader with a tqdm progress bar.
+
+    Args:
+        model (nn.Module): The model to evaluate.
+        data_loader (DataLoader): DataLoader for the dataset to evaluate on.
+        criterion (nn.Module): Loss function.
+        device (torch.device): Device to perform computation on.
+
+    Returns:
+        Tuple[float, float]: Average loss and accuracy in percentage.
+    """
+    model.eval()
+    total_loss, correct, total = 0.0, 0, 0
+
+    with torch.no_grad():
+        progress_bar = tqdm(data_loader, desc="Evaluating", leave=False)
+        for inputs, labels in progress_bar:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            total_loss += loss.item() * inputs.size(0)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            avg_loss = total_loss / total if total > 0 else 0
+            accuracy = 100 * correct / total if total > 0 else 0
+
+            progress_bar.set_postfix({
+                'loss': f'{avg_loss:.4f}',
+                'acc': f'{accuracy:.2f}%'
+            })
+
+    avg_loss = total_loss / total
+    accuracy = 100 * correct / total
+    return avg_loss, accuracy
+
+
+def train_model(model: nn.Module, dataset, training_params):
     """
     Trains the model on the provided dataset using the specified training parameters.
 
     Args:
         model (nn.Module): The model to train.
-        dataset (Dataset): The dataset to use for training.
-        training_params (TrainingParams): The training parameters.
+        dataset: An object with 'train_dataset' and 'test_dataset' attributes.
+        training_params: An object with 'batch_size', 'epochs', and other training parameters.
     """
+    print(f"Model parameters: {count_parameters(model):.3f} Million")
+    
+    torch.autograd.set_detect_anomaly(True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -67,7 +116,7 @@ def train_model(model: nn.Module, dataset: Dataset, training_params: TrainingPar
             loss.backward()
             optimizer.step()
 
-            train_loss += loss.item()
+            train_loss += loss.item() * inputs.size(0)
             _, predicted = torch.max(outputs.data, 1)
             train_total += labels.size(0)
             train_correct += (predicted == labels).sum().item()
@@ -77,26 +126,17 @@ def train_model(model: nn.Module, dataset: Dataset, training_params: TrainingPar
                 'acc': f'{100 * train_correct / train_total:.2f}%'
             })
 
-        print(f"Epoch {epoch+1} | Train Loss: {train_loss/len(train_loader):.4f} | Train Accuracy: {100 * train_correct/train_total:.2f}%")
+        avg_train_loss = train_loss / train_total
+        train_accuracy = 100 * train_correct / train_total
+        print(f"Epoch {epoch+1} | Train Loss: {avg_train_loss:.4f} | Train Accuracy: {train_accuracy:.2f}%")
+
+        test_loss, test_accuracy = evaluate_model(model, test_loader, criterion, device)
+        print(f"Epoch {epoch+1} | Test Loss:  {test_loss:.4f} | Test Accuracy:  {test_accuracy:.2f}%")
+        
+        print('-' * 20)
 
     torch.cuda.empty_cache()
     print("Finished Training")
-
-    model.eval()
-    test_loss, test_correct, test_total = 0.0, 0, 0
-
-    with torch.no_grad():
-        for inputs, labels in tqdm(test_loader, desc="Evaluating"):
-            inputs, labels = inputs.to(device), labels.to(device)
-
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            test_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            test_total += labels.size(0)
-            test_correct += (predicted == labels).sum().item()
-
-    print(f"Test Loss: {test_loss/len(test_loader):.4f} | Test Accuracy: {100 * test_correct/test_total:.2f}%")
 
 # def train_model_with_args(args):
 #     """

@@ -8,7 +8,7 @@ from src.training.train import train_model
 
 from src.schema.dataset import DatasetName
 
-dataset = load_dataset(DatasetName.CIFAR10.value)
+dataset = load_dataset(DatasetName.CIFAR100.value)
 model = create_model(AlexNetArchitecture, in_channels=dataset.in_channels, num_classes=dataset.num_classes)
 
 train_model(model, dataset, AlexNetArchitecture.training_params)

@@ -25,3 +25,4 @@ class ModelFamily(str, Enum):
     DENSENET = "DENSENET"
     REGNET = "REGNET"
     SQUEEZENET = "SQUEEZENET"
+    MOBILENETV3 = "MOBILENETV3"
