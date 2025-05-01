@@ -15,7 +15,7 @@ training_params = TrainingParams(
     learning_rate = 0.001,
     optimizer = OptimizerType.ADAM,
     momentum = None,
-    weight_decay = None
+    weight_decay = None,
 )
 
 # dataset_epochs = {
@@ -34,7 +34,7 @@ training_params = TrainingParams(
 # }
     
 # for dataset_name in [DatasetName.MNIST, DatasetName.FashionMNIST, DatasetName.CIFAR10]:
-for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
+for dataset_name in [DatasetName.CIFAR10]:
 
     dataset = load_dataset(dataset_name)
     
@@ -49,7 +49,7 @@ for dataset_name in [DatasetName.CIFAR10, DatasetName.CIFAR100]:
         ModelFamily.MOBILENETV3,
     ]:
         
-        for pretrained in [False, True]:
+        for pretrained in [False]:
             
             print()
             

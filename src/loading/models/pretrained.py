@@ -4,7 +4,7 @@ import torchvision.models as models
 
 from src.schema.model import ModelFamily
 
-from src.loading.models.mobilenetv3 import MobileNetV3Small
+from src.loading.models.mobilenet.model import MobileNetV3Small
 
 family_to_model = {
     ModelFamily.VGG: lambda weights: models.vgg11_bn(weights=weights),
