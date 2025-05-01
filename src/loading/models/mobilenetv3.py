@@ -85,7 +85,7 @@ class InvertedResidualConfig:
         self.dilation = dilation
 
 class MobileNetV3Small(nn.Module):
-    def __init__(self, num_classes=10, width_mult=1.0, reduced_tail=False, dilated=False, weights=None):
+    def __init__(self, num_classes=1000, width_mult=1.0, reduced_tail=False, dilated=False, weights=None):
         super().__init__()
         norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.01)
         reduce_divider = 2 if reduced_tail else 1
@@ -139,7 +139,6 @@ class MobileNetV3Small(nn.Module):
             # self._initialize_weights()
             pass
         else:
-            
             self.load_state_dict(weights.get_state_dict())
 
     def forward(self, x):
