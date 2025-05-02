@@ -1,7 +1,6 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import copy
 import time
 import pandas as pd
 
@@ -18,9 +17,9 @@ from src.optim.hill_climbing.algorithm import hill_climbing_optimization
 
 print("Preparing training configuration and dataset...")
 training_params = TrainingParams(
-    epochs=1,
+    epochs=10,
     batch_size=64,
-    learning_rate=0.001,
+    learning_rate=0.0025,
     optimizer=OptimizerType.ADAM,
     momentum=None,
     weight_decay=None,
@@ -40,13 +39,13 @@ print("Defining actual evaluation function...")
 def actual_evaluation(hp: MobileNetHP):
     config = MobileNetConfig.from_hp(hp)
     model = MobileNetV3Small(config, dataset.num_classes)
+    print(f"Model Parameters: {count_parameters(model):.3f}M")
     start_time = time.time()
 
     train_results = train_model(model, dataset, training_params)
     eval_time = (time.time() - start_time) / 60
 
     test_accuracy = train_results.history.epochs[-1].test_accuracy
-    # test_accuracy = 0.5  # Placeholder for actual test accuracy
 
     print(f"Evaluated HP with test_accuracy={test_accuracy:.4f}, time={eval_time:.2f} minutes")
 
