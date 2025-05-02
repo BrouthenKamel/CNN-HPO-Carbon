@@ -11,7 +11,7 @@ from src.loading.models.mobilenet.space import MobileNetHPSpace
 from src.loading.models.mobilenet.config import MobileNetConfig
 from src.loading.models.mobilenet.model import MobileNetV3Small
 
-base_dir = '/content/drive/MyDrive/mobilenet_v3'
+base_dir = '/content/drive/MyDrive/mobilenet_2'
 os.makedirs(base_dir, exist_ok=True)
 
 save_path = os.path.join(base_dir, 'training_record.json')
@@ -33,7 +33,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-n = 10
+n = 3
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name)
