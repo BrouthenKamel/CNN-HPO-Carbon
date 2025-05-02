@@ -28,7 +28,7 @@ class MobileNetHPSpace:
         self.stride_choices = [1, 2]
         self.dropout_choices = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
         
-        self.last_conv_upsample_choices = [4, 6, 8]
+        self.last_conv_upsample_choices = [2, 4, 6, 8]
 
         self.num_blocks = num_blocks
 

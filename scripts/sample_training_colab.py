@@ -33,7 +33,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-n = 3
+n = 5
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name)
@@ -61,6 +61,9 @@ for i in range(n):
 
             s = time.time()
             res = train_model(model, dataset, training_params)
+            
+            print("Model Summary:")
+            print(model)
             e = time.time()
             break
         except Exception as e:

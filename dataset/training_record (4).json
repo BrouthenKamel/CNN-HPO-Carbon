@@ -2,6 +2,219 @@
     {
         "hp": {
             "initial_conv_hp": {
+                "channels": 8,
+                "kernel_size": 3,
+                "stride": 1,
+                "activation": "Hardswish"
+            },
+            "inverted_residual_hps": [
+                {
+                    "expanded_channels": 16,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 16,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 72,
+                    "use_se": false,
+                    "se_hp": null,
+                    "conv_bn_activation_hp": {
+                        "channels": 16,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "Hardswish"
+                    }
+                },
+                {
+                    "expanded_channels": 32,
+                    "use_se": false,
+                    "se_hp": null,
+                    "conv_bn_activation_hp": {
+                        "channels": 16,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "Hardswish"
+                    }
+                },
+                {
+                    "expanded_channels": 64,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 32,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 88,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 3,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 128,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 7,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 72,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 64,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 288,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 96,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 248,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 96,
+                        "kernel_size": 3,
+                        "stride": 2,
+                        "activation": "Hardswish"
+                    }
+                },
+                {
+                    "expanded_channels": 248,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 96,
+                        "kernel_size": 7,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                }
+            ],
+            "last_conv_upsample": 4,
+            "last_conv_hp": {
+                "channels": 768,
+                "kernel_size": 1,
+                "stride": 1,
+                "activation": "Hardswish"
+            },
+            "classifier_hp": {
+                "neurons": 512,
+                "activation": "ReLU",
+                "dropout_rate": 0.0
+            }
+        },
+        "n_parameters": 0.614482,
+        "history": {
+            "epochs": [
+                {
+                    "epoch": 1,
+                    "train_loss": 1.851299135131836,
+                    "test_loss": 1.5807776304244996,
+                    "train_accuracy": 30.146,
+                    "test_accuracy": 41.43
+                },
+                {
+                    "epoch": 2,
+                    "train_loss": 1.484078067779541,
+                    "test_loss": 1.3677659719467163,
+                    "train_accuracy": 45.846,
+                    "test_accuracy": 50.01
+                },
+                {
+                    "epoch": 3,
+                    "train_loss": 1.269622858581543,
+                    "test_loss": 1.2195515327453614,
+                    "train_accuracy": 54.28,
+                    "test_accuracy": 55.44
+                },
+                {
+                    "epoch": 4,
+                    "train_loss": 1.1038397008514405,
+                    "test_loss": 1.0489803289413453,
+                    "train_accuracy": 60.548,
+                    "test_accuracy": 62.44
+                },
+                {
+                    "epoch": 5,
+                    "train_loss": 0.9822951301956176,
+                    "test_loss": 1.0400757467269897,
+                    "train_accuracy": 65.218,
+                    "test_accuracy": 62.73
+                }
+            ]
+        },
+        "time": 20.49
+    },
+    {
+        "hp": {
+            "initial_conv_hp": {
                 "channels": 16,
                 "kernel_size": 7,
                 "stride": 2,
@@ -18,29 +231,85 @@
                     "conv_bn_activation_hp": {
                         "channels": 16,
                         "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "ReLU"
+                        "stride": 2,
+                        "activation": "Hardswish"
                     }
                 },
                 {
-                    "expanded_channels": 72,
+                    "expanded_channels": 64,
                     "use_se": false,
                     "se_hp": null,
                     "conv_bn_activation_hp": {
                         "channels": 24,
                         "kernel_size": 3,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 88,
+                    "use_se": false,
+                    "se_hp": null,
+                    "conv_bn_activation_hp": {
+                        "channels": 24,
+                        "kernel_size": 7,
                         "stride": 1,
                         "activation": "Hardswish"
                     }
                 },
                 {
                     "expanded_channels": 72,
-                    "use_se": false,
-                    "se_hp": null,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
                     "conv_bn_activation_hp": {
-                        "channels": 24,
+                        "channels": 40,
                         "kernel_size": 3,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 176,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 80,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 7,
                         "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 48,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 48,
+                        "kernel_size": 7,
+                        "stride": 2,
                         "activation": "ReLU"
                     }
                 },
@@ -48,381 +317,112 @@
                     "expanded_channels": 96,
                     "use_se": true,
                     "se_hp": {
-                        "squeeze_factor": 8,
+                        "squeeze_factor": 2,
                         "activation": "Sigmoid"
                     },
                     "conv_bn_activation_hp": {
-                        "channels": 24,
-                        "kernel_size": 3,
-                        "stride": 2,
+                        "channels": 48,
+                        "kernel_size": 5,
+                        "stride": 1,
                         "activation": "Hardswish"
                     }
                 },
                 {
-                    "expanded_channels": 152,
+                    "expanded_channels": 144,
                     "use_se": true,
                     "se_hp": {
-                        "squeeze_factor": 2,
+                        "squeeze_factor": 8,
                         "activation": "Hardsigmoid"
                     },
                     "conv_bn_activation_hp": {
-                        "channels": 24,
+                        "channels": 56,
                         "kernel_size": 7,
                         "stride": 2,
-                        "activation": "ReLU"
-                    }
-                },
-                {
-                    "expanded_channels": 112,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 2,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 32,
-                        "kernel_size": 5,
-                        "stride": 2,
                         "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 56,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 8,
-                        "activation": "Sigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 48,
-                        "kernel_size": 3,
-                        "stride": 1,
-                        "activation": "ReLU"
-                    }
-                },
-                {
-                    "expanded_channels": 64,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 4,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 48,
-                        "kernel_size": 5,
-                        "stride": 1,
-                        "activation": "ReLU"
                     }
                 },
                 {
                     "expanded_channels": 104,
                     "use_se": true,
                     "se_hp": {
-                        "squeeze_factor": 8,
+                        "squeeze_factor": 2,
                         "activation": "Sigmoid"
                     },
                     "conv_bn_activation_hp": {
-                        "channels": 88,
-                        "kernel_size": 5,
+                        "channels": 72,
+                        "kernel_size": 3,
                         "stride": 1,
-                        "activation": "Hardswish"
+                        "activation": "ReLU"
                     }
                 },
                 {
                     "expanded_channels": 192,
                     "use_se": true,
                     "se_hp": {
-                        "squeeze_factor": 4,
-                        "activation": "Sigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 96,
-                        "kernel_size": 5,
-                        "stride": 1,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 104,
-                    "use_se": true,
-                    "se_hp": {
                         "squeeze_factor": 8,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 96,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "ReLU"
-                    }
-                }
-            ],
-            "last_conv_upsample": 6,
-            "last_conv_hp": {
-                "channels": 576,
-                "kernel_size": 1,
-                "stride": 1,
-                "activation": "Hardswish"
-            },
-            "classifier_hp": {
-                "neurons": 512,
-                "activation": "Hardswish",
-                "dropout_rate": 0.3
-            }
-        },
-        "n_parameters": 0.566562,
-        "history": {
-            "epochs": [
-                {
-                    "epoch": 1,
-                    "train_loss": 1.4928919813537598,
-                    "test_loss": 1.1472045698165894,
-                    "train_accuracy": 44.65,
-                    "test_accuracy": 59.3
-                },
-                {
-                    "epoch": 2,
-                    "train_loss": 0.9995747680664062,
-                    "test_loss": 0.9106043005943298,
-                    "train_accuracy": 64.234,
-                    "test_accuracy": 67.77
-                },
-                {
-                    "epoch": 3,
-                    "train_loss": 0.7863185988616943,
-                    "test_loss": 0.7924596909523011,
-                    "train_accuracy": 72.29,
-                    "test_accuracy": 72.32
-                },
-                {
-                    "epoch": 4,
-                    "train_loss": 0.6604404428863525,
-                    "test_loss": 0.7171968072891235,
-                    "train_accuracy": 76.994,
-                    "test_accuracy": 74.74
-                },
-                {
-                    "epoch": 5,
-                    "train_loss": 0.5720997278785706,
-                    "test_loss": 0.723507430934906,
-                    "train_accuracy": 79.932,
-                    "test_accuracy": 76.23
-                }
-            ]
-        },
-        "time": 31.53
-    },
-    {
-        "hp": {
-            "initial_conv_hp": {
-                "channels": 8,
-                "kernel_size": 7,
-                "stride": 1,
-                "activation": "Hardswish"
-            },
-            "inverted_residual_hps": [
-                {
-                    "expanded_channels": 16,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 2,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 16,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 40,
-                    "use_se": false,
-                    "se_hp": null,
-                    "conv_bn_activation_hp": {
-                        "channels": 16,
-                        "kernel_size": 5,
-                        "stride": 2,
-                        "activation": "ReLU"
-                    }
-                },
-                {
-                    "expanded_channels": 80,
-                    "use_se": false,
-                    "se_hp": null,
-                    "conv_bn_activation_hp": {
-                        "channels": 16,
-                        "kernel_size": 5,
-                        "stride": 2,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 64,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 4,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 24,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 40,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 8,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 24,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 240,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 4,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 40,
-                        "kernel_size": 5,
-                        "stride": 2,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 80,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 8,
-                        "activation": "Sigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 40,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "ReLU"
-                    }
-                },
-                {
-                    "expanded_channels": 64,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 8,
-                        "activation": "Sigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 48,
-                        "kernel_size": 7,
-                        "stride": 1,
-                        "activation": "ReLU"
-                    }
-                },
-                {
-                    "expanded_channels": 256,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 8,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 80,
-                        "kernel_size": 3,
-                        "stride": 2,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 240,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 2,
                         "activation": "Hardsigmoid"
                     },
                     "conv_bn_activation_hp": {
                         "channels": 88,
                         "kernel_size": 5,
-                        "stride": 1,
-                        "activation": "Hardswish"
-                    }
-                },
-                {
-                    "expanded_channels": 224,
-                    "use_se": true,
-                    "se_hp": {
-                        "squeeze_factor": 4,
-                        "activation": "Hardsigmoid"
-                    },
-                    "conv_bn_activation_hp": {
-                        "channels": 88,
-                        "kernel_size": 3,
                         "stride": 2,
-                        "activation": "Hardswish"
+                        "activation": "ReLU"
                     }
                 }
             ],
-            "last_conv_upsample": 4,
+            "last_conv_upsample": 8,
             "last_conv_hp": {
-                "channels": 528,
+                "channels": 352,
                 "kernel_size": 1,
                 "stride": 1,
-                "activation": "Hardswish"
+                "activation": "ReLU"
             },
             "classifier_hp": {
                 "neurons": 768,
                 "activation": "Hardswish",
-                "dropout_rate": 0.0
+                "dropout_rate": 0.4
             }
         },
-        "n_parameters": 0.636738,
+        "n_parameters": 0.82789,
         "history": {
             "epochs": [
                 {
                     "epoch": 1,
-                    "train_loss": 1.493592522354126,
-                    "test_loss": 1.2167193964004517,
-                    "train_accuracy": 44.024,
-                    "test_accuracy": 56.46
+                    "train_loss": 1.8052491911315918,
+                    "test_loss": 1.5231707307815552,
+                    "train_accuracy": 31.962,
+                    "test_accuracy": 44.73
                 },
                 {
                     "epoch": 2,
-                    "train_loss": 1.0104769919776917,
-                    "test_loss": 0.9715393363952637,
-                    "train_accuracy": 63.634,
-                    "test_accuracy": 65.38
+                    "train_loss": 1.35167990398407,
+                    "test_loss": 1.2059240800857545,
+                    "train_accuracy": 51.488,
+                    "test_accuracy": 56.76
                 },
                 {
                     "epoch": 3,
-                    "train_loss": 0.7936563793182373,
-                    "test_loss": 0.7946278292655945,
-                    "train_accuracy": 72.054,
-                    "test_accuracy": 72.33
+                    "train_loss": 1.100206151046753,
+                    "test_loss": 1.034900369644165,
+                    "train_accuracy": 60.96,
+                    "test_accuracy": 62.73
                 },
                 {
                     "epoch": 4,
-                    "train_loss": 0.6559767402267456,
-                    "test_loss": 0.7147165863990784,
-                    "train_accuracy": 77.296,
-                    "test_accuracy": 75.51
+                    "train_loss": 0.9367313107681274,
+                    "test_loss": 0.9405747627258301,
+                    "train_accuracy": 66.906,
+                    "test_accuracy": 66.85
                 },
                 {
                     "epoch": 5,
-                    "train_loss": 0.5646363759803772,
-                    "test_loss": 0.6551067210197449,
-                    "train_accuracy": 80.284,
-                    "test_accuracy": 77.69
+                    "train_loss": 0.8017521917152405,
+                    "test_loss": 0.8620048261642456,
+                    "train_accuracy": 71.984,
+                    "test_accuracy": 70.28
                 }
             ]
         },
-        "time": 41.9
+        "time": 18.2
     }
 ]

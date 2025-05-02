@@ -25,7 +25,7 @@ else:
 record = []
 
 training_params = TrainingParams(
-    epochs=1,
+    epochs=5,
     batch_size=64,
     learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
@@ -33,7 +33,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-n = 1
+n = 4
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name)
@@ -61,6 +61,9 @@ for i in range(n):
 
             s = time.time()
             res = train_model(model, dataset, training_params)
+            
+            print("Model summary:")
+            print(model)
             e = time.time()
             break
         except Exception as e:
