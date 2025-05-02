@@ -57,4 +57,4 @@ def generate_random_config(num_configs, output_csv='alexnet_random_configs.csv')
     print(f"Generated {num_configs} configurations and saved to {output_csv}")
 
 # Example usage
-generate_random_config(10, output_csv="./datasets/generated/alexnet_random_configs_v2.csv")
+generate_random_config(300, output_csv="./datasets/generated/alexnet_random_configs_v7.csv")

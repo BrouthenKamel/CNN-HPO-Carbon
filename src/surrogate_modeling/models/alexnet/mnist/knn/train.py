@@ -12,7 +12,7 @@ from sklearn.neighbors import KNeighborsRegressor
 # ─── 1. Your two original DataFrames ───────────────────────────────────────────
 # (Here we assume df1, df2 are already in scope, each of shape (10, 42),
 #  sharing the same columns and containing 'test_accuracy' as the target.)
-df = pd.read_csv('./models/alexnet/mnist/rbf/df_cleaned_2.csv')
+df = pd.read_csv('./models/alexnet/mnist/knn/df_cleaned_3.csv')
 
 
 # ─── 2. Concatenate them vertically ────────────────────────────────────────────
@@ -38,14 +38,14 @@ X[cat_cols] = imp_cat.fit_transform(X[cat_cols])
 # ─── 5. One-hot encode categoricals ────────────────────────────────────────────
 X = pd.get_dummies(X, drop_first=True)
 
-# _, feature_columns = joblib.load('./models/alexnet/mnist/rbf_surrogate.pkl')
+_, feature_columns = joblib.load('./models/alexnet/mnist/rbf_surrogate.pkl')
 
-# for col in feature_columns:
-#     if col not in X.columns:
-#         X[col] = 0
+for col in feature_columns:
+    if col not in X.columns:
+        X[col] = 0
 
-# # Discard any extra columns not in that list, and reorder
-# X = X[feature_columns]
+# Discard any extra columns not in that list, and reorder
+X = X[feature_columns]
 
 # pca = PCA(n_components=5)
 # pca_res = pca.fit_transform(X)
@@ -56,7 +56,7 @@ X = pd.get_dummies(X, drop_first=True)
 # ─── 6. Train/test split ───────────────────────────────────────────────────────
 X_train, X_test, y_train, y_test = train_test_split(
     X, y,
-    test_size=0.2,
+    test_size=0.1,
     random_state=42,
     shuffle=True
 )
@@ -67,11 +67,11 @@ X_test_arr  = X_test.values                 # (n_test,  n_features)
 y_train_arr = y_train.values # (n_train, 1)
 y_test_arr  = y_test.values  # (n_test,  1)
 
-# X_arr = X.values
-# y_arr = y.values
+X_arr = X.values
+y_arr = y.values
 
-# X_arr = X.to_numpy(dtype=np.float64)          # shape: (n_samples, n_features)
-# y_arr = y.to_numpy(dtype=np.float64).reshape(-1, 1)  # shape: (n_samples, 1
+X_arr = X.to_numpy(dtype=np.float64)          # shape: (n_samples, n_features)
+y_arr = y.to_numpy(dtype=np.float64).reshape(-1, 1)  # shape: (n_samples, 1
 
 X_train_arr = X_train.to_numpy(dtype=np.float64)     
 X_test_arr = X_test.to_numpy(dtype=np.float64)     
@@ -88,19 +88,23 @@ y_test_arr = y_test.to_numpy(dtype=np.float64).reshape(-1, 1)
 # sgp.set_inducing_inputs(X_train_arr)
 # sgp.train()
 
-dt = DecisionTreeRegressor()
-dt.fit(X_train_arr, y_train_arr)
+# dt = DecisionTreeRegressor()
+# dt.fit(X_train_arr, y_train_arr)
+
+knn1 = KNeighborsRegressor(n_neighbors=2)
+knn1.fit(X_train_arr, y_train_arr.ravel())
 
 # ─── 9. Predict on both train & test ───────────────────────────────────────────
 # y_pred_test = sm.predict_values(X_test_arr).ravel()
 # y_pred_test = sgp.predict_values(X_test_arr).ravel()
-y_pred_test = dt.predict(X_test_arr).ravel()
+# y_pred_test = dt.predict(X_test_arr).ravel()
+y_pred_test = knn1.predict(X_test_arr)
 
 mse_test = mean_squared_error(y_test_arr, y_pred_test)
 r2_test  = r2_score       (y_test_arr, y_pred_test)
 
-print(f"Training MSE:  {mse_test:.6f}")
-print(f"Training R²:   {r2_test:.4f}")
+print(f"Test MSE:  {mse_test:.6f}")
+print(f"Test R²:   {r2_test:.4f}")
 
 print("Actual vs Predicted on Test Set:")
 for actual, pred in zip(y_test_arr.ravel(), y_pred_test):
@@ -114,10 +118,10 @@ for actual, pred in zip(y_test_arr.ravel(), y_pred_test):
 # X_test ['rbf_pred'] = y_pred_test
 
 # ─── 11. Save surrogate and feature ordering ────────────────────────────────────
-joblib.dump(
-    (dt, X.columns.tolist()),
-    './models/alexnet/mnist/rbf_surrogate.pkl'
-)
+# joblib.dump(
+#     (knn1, X.columns.tolist()),
+#     './models/alexnet/mnist/rbf_surrogate.pkl'
+# )
 
 # print("Done. Shapes:")
 # print("  X_train:", X_train.shape, "y_train:", y_train.shape)

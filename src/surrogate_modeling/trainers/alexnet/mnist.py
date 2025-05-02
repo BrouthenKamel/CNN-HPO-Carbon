@@ -13,8 +13,10 @@ def run_mnist(csv_path, row, result_csv_path, device='cuda'):
 
     # Model setup
     model = CustomAlexNet(csv_path=csv_path, input_channels=1, row=row)
-    model.to(device)
-
+    device_ = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model.to(device_)
+    model = nn.DataParallel(model, device_ids=[0, 1])
+    
     # Get DataLoader for MNIST
     batch_size = int(config['batch_size'])
     train_loader, test_loader = get_mnist_data(batch_size)
@@ -38,15 +40,16 @@ def run_mnist(csv_path, row, result_csv_path, device='cuda'):
 
     # Train and evaluate
     for epoch in range(1, num_epochs + 1):
-        train_loss, train_accuracy = train(model, device, train_loader, optimizer, criterion, epoch)
+        train_loss, train_accuracy = train(model, device_, train_loader, optimizer, criterion, epoch)
         
         
         # Optionally, save checkpoints every epoch
         torch.save(model.state_dict(), f"model_epoch_{epoch}.pt")
 
-    test_loss, test_accuracy = evaluate(model, device, test_loader, criterion)  
+    test_loss, test_accuracy = evaluate(model, device_, test_loader, criterion)  
 
     result_df = pd.DataFrame({
+        'row': [row],
         'learning_rate': [learning_rate],
         'num_epochs': [num_epochs],
         'batch_size': [batch_size],
