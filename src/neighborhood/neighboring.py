@@ -35,7 +35,7 @@ search_space = {
 # uncomment the printing messages to check the values modified
 # the method is robust to adding new features to layer.py or block.py or any other class defining file
 
-def modify_value(object, block_modification_ratio = 0.5,search_space = search_space, perturbation_intensity = 1, perturbation_nature = "Local"):
+def modify_value(object, block_modification_ratio = 0.5, search_space = search_space, perturbation_intensity = 1, perturbation_nature = "Local"):
     # perturbation_intensity [1, 2, ...] : if a given block will be modified, this parameter will decide how many hyperparameters to change, by default it is 1 hyperparameter per block
     # perturbation_nature ["Local","Random"] : if a hyperparamter will be modified, this parameter will decide whether to tweak it to a relatively close value "Local", or select randomly a new value off the hyperparameter's search space "Random"
 

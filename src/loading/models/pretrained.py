@@ -67,7 +67,6 @@ def suggest_output_layer(model, num_classes=10):
     else:
         print("Unable to detect a known classifier layer to replace.")
 
-
 def load_pretrained_model(family: ModelFamily, num_classes: int, pretrained: bool = True):
     try:
         if pretrained:

@@ -3,15 +3,15 @@ import torch.nn as nn
 from torchvision import models
 
 from src.loading.models.mobilenet.utils import make_divisible
-from src.loading.models.mobilenet.config import config, InvertedResidualConfig
+from src.loading.models.mobilenet.config import InvertedResidualConfig, MobileNetConfig, original_config
 
 class SqueezeExcitation(nn.Module):
     def __init__(self, in_channels, squeeze_channels, activation_layer):
         super().__init__()
         self.fc1 = nn.Conv2d(in_channels, squeeze_channels, 1)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU(inplace=False)
         self.fc2 = nn.Conv2d(squeeze_channels, in_channels, 1)
-        self.activation = activation_layer(inplace=True)
+        self.activation = activation_layer()
 
     def forward(self, x):
         scale = self.fc1(x.mean((2, 3), keepdim=True))
@@ -21,10 +21,12 @@ class SqueezeExcitation(nn.Module):
         return x * scale
 
 class ConvBNActivation(nn.Sequential):
-    def __init__(self, in_channels, out_channels, kernel_size, norm_layer, activation_layer, stride=1, padding=0, groups=1):
+    def __init__(self, in_channels, out_channels, kernel_size, norm_layer, activation_layer, stride=1, groups=1):
+        
+        padding = (kernel_size - 1) // 2
         
         super().__init__(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, groups=groups, bias=False), norm_layer(out_channels), activation_layer(inplace=True)
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, groups=groups, bias=False), norm_layer(out_channels), activation_layer(inplace=False)
         )
 
 class InvertedResidual(nn.Module):
@@ -42,7 +44,7 @@ class InvertedResidual(nn.Module):
             )
 
         layers.append(
-            ConvBNActivation(config.expanded_channels, config.expanded_channels, kernel_size=config.conv_bn_activation_config.kernel_size, stride=config.conv_bn_activation_config.stride, padding=config.conv_bn_activation_config.padding, groups=config.expanded_channels, norm_layer=config.conv_bn_activation_config.norm_layer, activation_layer=config.conv_bn_activation_config.activation_layer)
+            ConvBNActivation(config.expanded_channels, config.expanded_channels, kernel_size=config.conv_bn_activation_config.kernel_size, stride=config.conv_bn_activation_config.stride, groups=config.expanded_channels, norm_layer=config.conv_bn_activation_config.norm_layer, activation_layer=config.conv_bn_activation_config.activation_layer)
         )
 
         if config.use_se:
@@ -63,13 +65,13 @@ class InvertedResidual(nn.Module):
 
 class MobileNetV3Small(nn.Module):
     
-    def __init__(self, num_classes=1000, weights=None):
+    def __init__(self, config: MobileNetConfig = original_config, num_classes=1000, weights=None):
         super().__init__()
 
         layers = []
 
         layers.append(
-            ConvBNActivation(config.initial_conv_config.in_channels, config.initial_conv_config.out_channels, kernel_size=config.initial_conv_config.kernel_size, stride=config.initial_conv_config.stride, padding=config.initial_conv_config.padding, norm_layer=config.initial_conv_config.norm_layer, activation_layer=config.initial_conv_config.activation_layer)
+            ConvBNActivation(config.initial_conv_config.in_channels, config.initial_conv_config.out_channels, kernel_size=config.initial_conv_config.kernel_size, stride=config.initial_conv_config.stride, norm_layer=config.initial_conv_config.norm_layer, activation_layer=config.initial_conv_config.activation_layer)
         )
 
         for inverted_residual_config in config.inverted_residual_configs:
@@ -85,8 +87,8 @@ class MobileNetV3Small(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(config.last_conv_config.out_channels, config.classifier_config.neurons),
-            config.classifier_config.activation_layer(inplace=True),
-            nn.Dropout(p=config.classifier_config.dropout_rate, inplace=True),
+            config.classifier_config.activation_layer(inplace=False),
+            nn.Dropout(p=config.classifier_config.dropout_rate, inplace=False),
             nn.Linear(config.classifier_config.neurons, num_classes)
         )
 
@@ -99,6 +101,7 @@ class MobileNetV3Small(nn.Module):
         x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
+
 
 if __name__ == "__main__":
     

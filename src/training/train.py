@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from src.loading.data.loader import load_dataset
 from src.loading.models.model_builder import create_model
-from src.schema.training import OptimizerType, TrainingParams
+from src.schema.training import OptimizerType, TrainingParams, Epoch, History, TrainingResult
 from src.schema.dataset import Dataset
 
 # from src.loading.models.alexnet import AlexNetArchitecture
@@ -101,6 +101,8 @@ def train_model(model: nn.Module, dataset, training_params):
 
     train_loader = DataLoader(dataset.train_dataset, batch_size=training_params.batch_size, shuffle=True)
     test_loader = DataLoader(dataset.test_dataset, batch_size=training_params.batch_size, shuffle=False)
+    
+    history = History(epochs=[])
 
     for epoch in range(training_params.epochs):
         model.train()
@@ -133,10 +135,20 @@ def train_model(model: nn.Module, dataset, training_params):
         test_loss, test_accuracy = evaluate_model(model, test_loader, criterion, device)
         print(f"Epoch {epoch+1} | Test Loss:  {test_loss:.4f} | Test Accuracy:  {test_accuracy:.2f}%")
         
+        history.record_epoch(
+            epoch=epoch+1,
+            train_loss=avg_train_loss,
+            test_loss=test_loss,
+            train_accuracy=train_accuracy,
+            test_accuracy=test_accuracy
+        )
+        
         print('-' * 20)
 
     torch.cuda.empty_cache()
     print("Finished Training")
+    
+    return TrainingResult(model, history)
 
 # def train_model_with_args(args):
 #     """

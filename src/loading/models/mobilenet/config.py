@@ -3,7 +3,7 @@ import torch.nn as nn
 from functools import partial
 
 from src.loading.models.mobilenet.utils import make_divisible
-from src.loading.models.mobilenet.hp import MobileNetHP, hp
+from src.loading.models.mobilenet.hp import MobileNetHP, original_hp
 
 class SqueezeExcitationConfig:
     def __init__(self, squeeze_factor: int = 4, activation_layer: str = "Hardsigmoid"):
@@ -19,7 +19,7 @@ class SqueezeExcitationConfig:
             raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
         
 class ConvBNActivationConfig:
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int,
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int,
                  norm_layer: str = "BatchNorm2d", activation_layer: str = "ReLU", eps: float = None, momentum: float = None, ignore_in_channels: bool = False):
         if ignore_in_channels:
             self.in_channels = in_channels
@@ -28,7 +28,6 @@ class ConvBNActivationConfig:
         self.out_channels = make_divisible(out_channels, 8)
         self.kernel_size = kernel_size
         self.stride = stride
-        self.padding = padding
         self.norm_layer = self.get_norm_layer(norm_layer, eps, momentum)
         
         self.activation_layer = self.get_activation_layer(activation_layer)
@@ -73,15 +72,6 @@ class ClassifierConfig:
             return nn.Hardswish
         else:
             raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
-
-class MobileNetConfig:
-    def __init__(self, initial_conv_config: ConvBNActivationConfig, last_conv_upsample: int, last_conv_config: ConvBNActivationConfig, inverted_residual_configs: list[InvertedResidualConfig], classifier_config: ClassifierConfig):
-        
-        self.initial_conv_config = initial_conv_config
-        self.inverted_residual_configs = inverted_residual_configs
-        self.last_conv_upsample = last_conv_upsample
-        self.last_conv_config = last_conv_config
-        self.classifier_config = classifier_config
         
 class MobileNetConfig:
     def __init__(self, initial_conv_config, last_conv_upsample, last_conv_config, inverted_residual_configs, classifier_config):
@@ -98,7 +88,6 @@ class MobileNetConfig:
             out_channels=hp.initial_conv_hp.channels,
             kernel_size=hp.initial_conv_hp.kernel_size,
             stride=hp.initial_conv_hp.stride,
-            padding=hp.initial_conv_hp.padding,
             activation_layer=hp.initial_conv_hp.activation,
             norm_layer="BatchNorm2d",
             eps=1e-3,
@@ -123,7 +112,6 @@ class MobileNetConfig:
                 out_channels=conv_hp.channels,
                 kernel_size=conv_hp.kernel_size,
                 stride=conv_hp.stride,
-                padding=conv_hp.padding,
                 activation_layer=conv_hp.activation,
                 norm_layer="BatchNorm2d"
             )
@@ -145,7 +133,6 @@ class MobileNetConfig:
             out_channels=last_conv_out_channels,
             kernel_size=hp.last_conv_hp.kernel_size,
             stride=hp.last_conv_hp.stride,
-            padding=hp.last_conv_hp.padding,
             activation_layer=hp.last_conv_hp.activation,
             norm_layer="BatchNorm2d",
             eps=1e-3,
@@ -166,4 +153,4 @@ class MobileNetConfig:
             classifier_config=classifier_config
         )
 
-config = MobileNetConfig.from_hp(hp)
+original_config = MobileNetConfig.from_hp(original_hp)

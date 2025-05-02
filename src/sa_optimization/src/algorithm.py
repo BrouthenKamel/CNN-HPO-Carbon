@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 # Now imports should work
 from src.sa_optimization.src.cooling import CoolingSchedule, exponential_cooling, linear_cooling, logarithmic_cooling
-from src.neighborhood.src.neighboring import modify_value
+from neighborhood.neighboring import modify_value
 from src.schema.model import ModelArchitecture
 from src.schema.block import CNNBlock, MLPBlock
 from src.schema.layer import ConvLayer, PoolingLayer, PoolingType, DropoutLayer, LinearLayer, ActivationLayer, ActivationType, PaddingType, AdaptivePoolingLayer
