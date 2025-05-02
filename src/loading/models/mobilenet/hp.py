@@ -5,12 +5,26 @@ class SqueezeExcitationHP:
         self.squeeze_factor = squeeze_factor
         self.activation = activation
         
+    def __dict__(self):
+        return {
+            "squeeze_factor": self.squeeze_factor,
+            "activation": self.activation
+        }
+        
 class ConvBNActivationHP:
     def __init__(self, kernel_size: int, stride: int, activation: str, channels: int = None):
         self.channels = channels
         self.kernel_size = kernel_size
         self.stride = stride
         self.activation = activation
+        
+    def __dict__(self):
+        return {
+            "channels": self.channels,
+            "kernel_size": self.kernel_size,
+            "stride": self.stride,
+            "activation": self.activation
+        }
         
 class InvertedResidualHP:
     def __init__(self, expand_channels: int, use_se: bool, se_hp: SqueezeExcitationHP, conv_bn_activation_hp: ConvBNActivationHP):
@@ -19,11 +33,26 @@ class InvertedResidualHP:
         self.se_hp = se_hp
         self.conv_bn_activation_hp = conv_bn_activation_hp
         
+    def __dict__(self):
+        return {
+            "expanded_channels": self.expanded_channels,
+            "use_se": self.use_se,
+            "se_hp": self.se_hp.__dict__() if self.se_hp else None,
+            "conv_bn_activation_hp": self.conv_bn_activation_hp.__dict__()
+        }
+        
 class ClassifierHP:
     def __init__(self, neurons: int, activation: str, dropout_rate: float):
         self.neurons = neurons
         self.activation = activation
         self.dropout_rate = dropout_rate
+        
+    def __dict__(self):
+        return {
+            "neurons": self.neurons,
+            "activation": self.activation,
+            "dropout_rate": self.dropout_rate
+        }
 
 class MobileNetHP:
     def __init__(self, initial_conv_hp: ConvBNActivationHP, inverted_residual_hps: list[InvertedResidualHP], last_conv_upsample: int, last_conv_hp: ConvBNActivationHP, classifier_hp: ClassifierHP):
@@ -32,6 +61,15 @@ class MobileNetHP:
         self.last_conv_upsample = last_conv_upsample
         self.last_conv_hp = last_conv_hp
         self.classifier_hp = classifier_hp
+        
+    def __dict__(self):
+        return {
+            "initial_conv_hp": self.initial_conv_hp.__dict__(),
+            "inverted_residual_hps": [ir_hp.__dict__() for ir_hp in self.inverted_residual_hps],
+            "last_conv_upsample": self.last_conv_upsample,
+            "last_conv_hp": self.last_conv_hp.__dict__(),
+            "classifier_hp": self.classifier_hp.__dict__()
+        }
         
 original_hp = MobileNetHP(
     initial_conv_hp=ConvBNActivationHP(channels=16, kernel_size=3, stride=2, activation="Hardswish"),

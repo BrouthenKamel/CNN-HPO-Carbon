@@ -1,6 +1,7 @@
 import time
 import json
 import os
+import torch
 
 from src.loading.data.loader import load_dataset
 from src.schema.dataset import DatasetName
@@ -41,6 +42,9 @@ hp_space = MobileNetHPSpace(num_blocks=11)
 def save_progress(record, path):
     with open(path, 'w') as f:
         json.dump(record, f)
+        
+def save_model(model, path):
+    torch.save(model.state_dict(), path)
 
 for i in range(n):
     print()
@@ -67,16 +71,15 @@ for i in range(n):
     print(f"Training time: {training_time:.2f} minutes")
 
     record.append({
-        'hp': hp.__dict__,
-        'model': res.model.state_dict(),
+        'hp': hp.__dict__(),
         'n_parameters': n_parameters,
-        'history': res.history,
+        'history': res.history.model_dump(),
         'time': training_time
     })
 
     save_progress(record, save_path)
-
-    print(record)
+    
+    save_model(model, os.path.join(base_dir, f'model_{i}.pth'))
 
     print("=" * 20)
 

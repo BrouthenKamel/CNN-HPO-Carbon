@@ -1,0 +1,187 @@
+[
+    {
+        "hp": {
+            "initial_conv_hp": {
+                "channels": 8,
+                "kernel_size": 5,
+                "stride": 2,
+                "activation": "Hardswish"
+            },
+            "inverted_residual_hps": [
+                {
+                    "expanded_channels": 16,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 16,
+                        "kernel_size": 5,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 16,
+                    "use_se": false,
+                    "se_hp": null,
+                    "conv_bn_activation_hp": {
+                        "channels": 16,
+                        "kernel_size": 3,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 48,
+                    "use_se": false,
+                    "se_hp": null,
+                    "conv_bn_activation_hp": {
+                        "channels": 24,
+                        "kernel_size": 5,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 72,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 24,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 48,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 3,
+                        "stride": 1,
+                        "activation": "Hardswish"
+                    }
+                },
+                {
+                    "expanded_channels": 120,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 5,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 56,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 40,
+                        "kernel_size": 7,
+                        "stride": 1,
+                        "activation": "Hardswish"
+                    }
+                },
+                {
+                    "expanded_channels": 80,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 2,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 48,
+                        "kernel_size": 7,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 88,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 72,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 320,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 8,
+                        "activation": "Hardsigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 88,
+                        "kernel_size": 5,
+                        "stride": 2,
+                        "activation": "ReLU"
+                    }
+                },
+                {
+                    "expanded_channels": 288,
+                    "use_se": true,
+                    "se_hp": {
+                        "squeeze_factor": 4,
+                        "activation": "Sigmoid"
+                    },
+                    "conv_bn_activation_hp": {
+                        "channels": 96,
+                        "kernel_size": 5,
+                        "stride": 1,
+                        "activation": "ReLU"
+                    }
+                }
+            ],
+            "last_conv_upsample": 4,
+            "last_conv_hp": {
+                "channels": 576,
+                "kernel_size": 1,
+                "stride": 1,
+                "activation": "Hardswish"
+            },
+            "classifier_hp": {
+                "neurons": 768,
+                "activation": "Hardswish",
+                "dropout_rate": 0.3
+            }
+        },
+        "n_parameters": 0.617162,
+        "history": {
+            "epochs": [
+                {
+                    "epoch": 1,
+                    "train_loss": 1.7115052779006958,
+                    "test_loss": 1.4460918079376222,
+                    "train_accuracy": 35.97,
+                    "test_accuracy": 47.02
+                }
+            ]
+        },
+        "time": 4.63
+    }
+]
