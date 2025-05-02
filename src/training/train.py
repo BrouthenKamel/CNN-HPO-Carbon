@@ -79,7 +79,6 @@ def evaluate_model(model: nn.Module, data_loader, criterion, device):
     accuracy = 100 * correct / total
     return avg_loss, accuracy
 
-
 def train_model(model: nn.Module, dataset, training_params):
     """
     Trains the model on the provided dataset using the specified training parameters.

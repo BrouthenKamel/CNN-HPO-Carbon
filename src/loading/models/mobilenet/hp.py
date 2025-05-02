@@ -5,7 +5,7 @@ class SqueezeExcitationHP:
         self.squeeze_factor = squeeze_factor
         self.activation = activation
         
-    def __dict__(self):
+    def to_dict(self):
         return {
             "squeeze_factor": self.squeeze_factor,
             "activation": self.activation
@@ -18,7 +18,7 @@ class ConvBNActivationHP:
         self.stride = stride
         self.activation = activation
         
-    def __dict__(self):
+    def to_dict(self):
         return {
             "channels": self.channels,
             "kernel_size": self.kernel_size,
@@ -33,12 +33,12 @@ class InvertedResidualHP:
         self.se_hp = se_hp
         self.conv_bn_activation_hp = conv_bn_activation_hp
         
-    def __dict__(self):
+    def to_dict(self):
         return {
             "expanded_channels": self.expanded_channels,
             "use_se": self.use_se,
-            "se_hp": self.se_hp.__dict__() if self.se_hp else None,
-            "conv_bn_activation_hp": self.conv_bn_activation_hp.__dict__()
+            "se_hp": self.se_hp.to_dict() if self.se_hp else None,
+            "conv_bn_activation_hp": self.conv_bn_activation_hp.to_dict()
         }
         
 class ClassifierHP:
@@ -47,7 +47,7 @@ class ClassifierHP:
         self.activation = activation
         self.dropout_rate = dropout_rate
         
-    def __dict__(self):
+    def to_dict(self):
         return {
             "neurons": self.neurons,
             "activation": self.activation,
@@ -62,14 +62,64 @@ class MobileNetHP:
         self.last_conv_hp = last_conv_hp
         self.classifier_hp = classifier_hp
         
-    def __dict__(self):
+    def to_dict(self):
         return {
-            "initial_conv_hp": self.initial_conv_hp.__dict__(),
-            "inverted_residual_hps": [ir_hp.__dict__() for ir_hp in self.inverted_residual_hps],
+            "initial_conv_hp": self.initial_conv_hp.to_dict(),
+            "inverted_residual_hps": [ir_hp.to_dict() for ir_hp in self.inverted_residual_hps],
             "last_conv_upsample": self.last_conv_upsample,
-            "last_conv_hp": self.last_conv_hp.__dict__(),
-            "classifier_hp": self.classifier_hp.__dict__()
+            "last_conv_hp": self.last_conv_hp.to_dict(),
+            "classifier_hp": self.classifier_hp.to_dict()
         }
+
+    def get_flattened_representation(self):
+        representation = {}
+
+        # Initial Conv
+        representation['initial_conv_hp_channels'] = self.initial_conv_hp.channels
+        representation['initial_conv_hp_kernel_size'] = self.initial_conv_hp.kernel_size
+        representation['initial_conv_hp_stride'] = self.initial_conv_hp.stride
+        for act in ['Hardswish', 'ReLU']:
+            representation[f'initial_conv_hp_activation_{act}'] = int(self.initial_conv_hp.activation == act)
+
+        # Inverted Residual Blocks
+        for idx, block in enumerate(self.inverted_residual_hps):
+            prefix = f'block_{idx}'
+
+            representation[f'{prefix}_expanded_channels'] = block.expanded_channels
+            representation[f'{prefix}_use_se'] = int(block.use_se)
+
+            # Squeeze Excitation
+            if block.use_se:
+                representation[f'{prefix}_se_squeeze_factor'] = block.se_hp.squeeze_factor
+                for se_act in ['Hardsigmoid', 'Sigmoid']:
+                    representation[f'{prefix}_se_activation_{se_act}'] = int(block.se_hp.activation == se_act)
+            else:
+                representation[f'{prefix}_se_squeeze_factor'] = 0
+                representation[f'{prefix}_se_activation_NONE'] = 1
+
+            # Convolution
+            representation[f'{prefix}_channels'] = block.conv_bn_activation_hp.channels
+            representation[f'{prefix}_kernel_size'] = block.conv_bn_activation_hp.kernel_size
+            representation[f'{prefix}_stride'] = block.conv_bn_activation_hp.stride
+
+            for act in ['Hardswish', 'ReLU']:
+                representation[f'{prefix}_activation_{act}'] = int(block.conv_bn_activation_hp.activation == act)
+
+        # Last Conv
+        representation['last_conv_upsample'] = self.last_conv_upsample
+        representation['last_conv_hp_channels'] = self.last_conv_hp.channels
+        representation['last_conv_hp_kernel_size'] = self.last_conv_hp.kernel_size
+        representation['last_conv_hp_stride'] = self.last_conv_hp.stride
+        for act in ['Hardswish', 'ReLU']:
+            representation[f'last_conv_hp_activation_{act}'] = int(self.last_conv_hp.activation == act)
+
+        # Classifier
+        representation['classifier_hp_neurons'] = self.classifier_hp.neurons
+        representation['classifier_hp_dropout_rate'] = self.classifier_hp.dropout_rate
+        for act in ['Hardswish', 'ReLU']:
+            representation[f'classifier_hp_activation_{act}'] = int(self.classifier_hp.activation == act)
+
+        return representation.values()
         
 original_hp = MobileNetHP(
     initial_conv_hp=ConvBNActivationHP(channels=16, kernel_size=3, stride=2, activation="Hardswish"),
@@ -142,6 +192,6 @@ original_hp = MobileNetHP(
         ),
     ],
     last_conv_upsample=6,
-    last_conv_hp=ConvBNActivationHP(kernel_size=1, stride=1, activation="Hardswish"),
+    last_conv_hp=ConvBNActivationHP(channels=96*6, kernel_size=1, stride=1, activation="Hardswish"),
     classifier_hp=ClassifierHP(neurons=1024, activation="Hardswish", dropout_rate=0.2)
 )

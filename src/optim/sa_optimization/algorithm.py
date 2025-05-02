@@ -1,21 +1,18 @@
 import random
 import torch.nn as nn
 import math
-import copy  # Added for deepcopy
+import copy
 from tqdm import tqdm
 import sys
 import os
 
-# Add project root to Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
-
 # Now imports should work
-from src.sa_optimization.src.cooling import CoolingSchedule, exponential_cooling, linear_cooling, logarithmic_cooling
+from src.sa_optimization.cooling import CoolingSchedule, exponential_cooling, linear_cooling, logarithmic_cooling
 from neighborhood.neighboring import modify_value
 from src.schema.model import ModelArchitecture
 from src.schema.block import CNNBlock, MLPBlock
 from src.schema.layer import ConvLayer, PoolingLayer, PoolingType, DropoutLayer, LinearLayer, ActivationLayer, ActivationType, PaddingType, AdaptivePoolingLayer
-from src.schema.training import Training, OptimizerType
+from src.schema.training import TrainingParams, OptimizerType
 from src.surrogate_modeling.models.alexnet.mnist.dt.inference import predict_from_config
 # rana nakhdmo b accuracy
 class SimulatedAnnealing:
@@ -25,7 +22,6 @@ class SimulatedAnnealing:
         self.max_stagnation_iters = max_stagnation_iters
         self.stagnation_threshold = stagnation_threshold
         self.init_configuration = init_configuration
-
 
     def optimize(self, hyperparameter_type:list[str], num_iterations:int)-> tuple[ModelArchitecture, float]:
         current_configuration = self.init_configuration

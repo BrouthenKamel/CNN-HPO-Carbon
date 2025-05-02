@@ -10,14 +10,14 @@ def load_json(path):
 def save_json(data, path):
     with open(path, 'w') as f:
         json.dump(data, f, indent=4)
-        
+
 def surrogate_record(record):
     surr_record = {}
     surr_record['hp'] = record['hp']
     surr_record['train_accuracy'] = record['history']['epochs'][-1]['train_accuracy']
     surr_record['test_accuracy'] = record['history']['epochs'][-1]['test_accuracy']
     return surr_record
-        
+
 def assemble_surrogate_record(record_dir):
     records = []
     for file in os.listdir(record_dir):
@@ -87,4 +87,6 @@ def create_surrogate_dataset(json_path):
     dataframe.to_csv(csv_path, index=False)
 
 if __name__ == "__main__":
+    # assemble_surrogate_record('./dataset/')
+    
     create_surrogate_dataset('./dataset/surrogate.json')

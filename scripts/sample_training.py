@@ -25,7 +25,7 @@ else:
 record = []
 
 training_params = TrainingParams(
-    epochs=5,
+    epochs=1,
     batch_size=64,
     learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
@@ -33,7 +33,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-n = 4
+n = 20
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name)
@@ -60,6 +60,10 @@ for i in range(n):
             print(f"Model Instantiated successfully! Parameters: {n_parameters} Million")
 
             s = time.time()
+            
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model.to(device)
+            
             res = train_model(model, dataset, training_params)
             
             print("Model summary:")
@@ -74,7 +78,7 @@ for i in range(n):
     print(f"Training time: {training_time:.2f} minutes")
 
     record.append({
-        'hp': hp.__dict__(),
+        'hp': hp.to_dict(),
         'n_parameters': n_parameters,
         'history': res.history.model_dump(),
         'time': training_time
