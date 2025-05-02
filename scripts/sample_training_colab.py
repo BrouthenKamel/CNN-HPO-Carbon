@@ -10,9 +10,6 @@ from src.loading.models.mobilenet.space import MobileNetHPSpace
 from src.loading.models.mobilenet.config import MobileNetConfig
 from src.loading.models.mobilenet.model import MobileNetV3Small
 
-from google.colab import drive
-drive.mount('/content/drive')
-
 base_dir = '/content/drive/MyDrive/mobilenet_v3'
 os.makedirs(base_dir, exist_ok=True)
 
