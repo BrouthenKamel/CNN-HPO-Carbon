@@ -27,7 +27,7 @@ else:
 record = []
 
 training_params = TrainingParams(
-    epochs=1,
+    epochs=5,
     batch_size=64,
     learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
@@ -35,7 +35,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-n = 1
+n = 10
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name)
