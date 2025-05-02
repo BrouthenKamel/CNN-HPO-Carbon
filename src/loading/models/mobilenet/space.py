@@ -20,9 +20,9 @@ class MobileNetHPSpace:
         self.squeeze_factor_choices = [2, 4, 8]
         self.se_activation_choices = ["Hardsigmoid", "Sigmoid"]
 
-        self.channel_choices = multiples_of(16, 1, 20)
-        self.expand_channels_choices = multiples_of(4, 1, 144)
-        self.classifier_neuron_choices = multiples_of(512, 1, 4)
+        self.channel_choices = multiples_of(8, 1, 20)
+        self.expand_channels_choices = multiples_of(8, 1, 40)
+        self.classifier_neuron_choices = multiples_of(256, 1, 4)
 
         self.kernel_size_choices = [3, 5, 7]
         self.stride_choices = [1, 2]
@@ -52,7 +52,7 @@ class MobileNetHPSpace:
             ref_conv = reference_ir.conv_bn_activation_hp
             out_ch = random.choice([c for c in self.channel_choices if c <= ref_conv.channels and c >= prev_out_ch])
             expand_ch = random.choice([c for c in self.expand_channels_choices if c <= reference_ir.expanded_channels and c >= out_ch])
-            use_se = random.choice([True, False])
+            use_se = reference_ir.use_se
             se_hp = random_se_hp() if use_se else None
             
             return InvertedResidualHP(

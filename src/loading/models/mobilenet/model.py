@@ -9,7 +9,7 @@ class SqueezeExcitation(nn.Module):
     def __init__(self, in_channels, squeeze_channels, activation_layer):
         super().__init__()
         self.fc1 = nn.Conv2d(in_channels, squeeze_channels, 1)
-        self.relu = nn.ReLU(inplace=False)
+        self.relu = nn.ReLU(inplace=True)
         self.fc2 = nn.Conv2d(squeeze_channels, in_channels, 1)
         self.activation = activation_layer()
 
@@ -26,7 +26,7 @@ class ConvBNActivation(nn.Sequential):
         padding = (kernel_size - 1) // 2
         
         super().__init__(
-            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, groups=groups, bias=False), norm_layer(out_channels), activation_layer(inplace=False)
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, groups=groups, bias=False), norm_layer(out_channels), activation_layer(inplace=True)
         )
 
 class InvertedResidual(nn.Module):
@@ -87,8 +87,8 @@ class MobileNetV3Small(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Linear(config.last_conv_config.out_channels, config.classifier_config.neurons),
-            config.classifier_config.activation_layer(inplace=False),
-            nn.Dropout(p=config.classifier_config.dropout_rate, inplace=False),
+            config.classifier_config.activation_layer(inplace=True),
+            nn.Dropout(p=config.classifier_config.dropout_rate, inplace=True),
             nn.Linear(config.classifier_config.neurons, num_classes)
         )
 
