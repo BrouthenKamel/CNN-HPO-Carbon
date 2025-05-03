@@ -1,44 +1,35 @@
-import os
 import torchvision
 import torchvision.transforms as transforms
-import torch 
 
-def load_dataset(dataset_name, data_dir='./data', download=True):
-    """
-    Loads the dataset. (Moved from data_model_loader.py)
+from src.schema.dataset import Dataset
 
-    Args:
-        dataset_name (str): The name of the dataset to load ('MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100').
-        data_dir (str): The directory where the datasets will be stored or are located.
-        download (bool): Whether to download the dataset if not found.
-
-    Returns:
-        torch.utils.data.Dataset: The loaded dataset (typically the training set).
-        torchvision.transforms.Compose: The transformations applied to the dataset.
-        int: Number of input channels.
-        int: Number of classes.
-
-
-    Raises:
-        ValueError: If the dataset_name is not supported.
-    """
-    num_classes = 0
-    in_channels = 0
+def load_dataset(dataset_name: str, data_dir: str = './data') -> tuple:
 
     if dataset_name in ['MNIST', 'FashionMNIST']:
         transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.Grayscale(num_output_channels=3),
             transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,)) 
-        ])
-        in_channels = 1
-        num_classes = 10
-    elif dataset_name in ['CIFAR10', 'CIFAR100']:
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) 
+            transforms.Normalize([0.5]*3, [0.5]*3)
         ])
         in_channels = 3
-        num_classes = 10 if dataset_name == 'CIFAR10' else 100
+        num_classes = 10
+    elif dataset_name == 'CIFAR10':
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+        ])
+        in_channels = 3
+        num_classes = 10
+    elif dataset_name == 'CIFAR100':
+        transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5071, 0.4865, 0.4409), (0.2673, 0.2564, 0.2762))
+        ])
+        in_channels = 3
+        num_classes = 100
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}. Choose from 'MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100'.")
 
@@ -52,7 +43,14 @@ def load_dataset(dataset_name, data_dir='./data', download=True):
     elif dataset_name == 'CIFAR100':
         dataset_class = torchvision.datasets.CIFAR100
 
-    dataset = dataset_class(root=data_dir, train=True, download=download, transform=transform)
+    train_dataset = dataset_class(root=data_dir, train=True, download=True, transform=transform)
+    test_dataset = dataset_class(root=data_dir, train=False, download=True, transform=transform)    
 
-    print(f"Successfully loaded {dataset_name} dataset (train={True}).")
-    return dataset, transform, in_channels, num_classes
+    return Dataset(
+        name=dataset_name,
+        train_dataset=train_dataset,
+        test_dataset=test_dataset,
+        transform=transform,
+        in_channels=in_channels,
+        num_classes=num_classes
+    )

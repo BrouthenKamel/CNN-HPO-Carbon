@@ -1,7 +1,7 @@
-from typing import Optional, List, Union
+from typing import Optional
 from pydantic import BaseModel
 
-from schema.layer import ConvLayer, PoolingLayer, DropoutLayer, LinearLayer, ActivationLayer, BatchNormLayer
+from src.schema.layer import ConvLayer, PoolingLayer, DropoutLayer, LinearLayer, ActivationLayer, BatchNormLayer
 
 class CNNBlock(BaseModel):
     conv_layer: Optional[ConvLayer] = None

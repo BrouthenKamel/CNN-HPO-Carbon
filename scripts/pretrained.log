@@ -1,0 +1,298 @@
+Training (RESNET) on (MNIST) with pretrained=True
+Model parameters: 11.182 Million
+Epoch 1 | Train Loss: 0.0621 | Train Accuracy: 98.11%                                                                                                                                            
+Epoch 1 | Test Loss:  0.0241 | Test Accuracy:  99.23%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.0304 | Train Accuracy: 99.07%                                                                                                                                            
+Epoch 2 | Test Loss:  0.0197 | Test Accuracy:  99.41%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.0202 | Train Accuracy: 99.37%                                                                                                                                            
+Epoch 3 | Test Loss:  0.0253 | Test Accuracy:  99.16%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.0174 | Train Accuracy: 99.48%                                                                                                                                            
+Epoch 4 | Test Loss:  0.0207 | Test Accuracy:  99.38%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.0149 | Train Accuracy: 99.53%                                                                                                                                            
+Epoch 5 | Test Loss:  0.0209 | Test Accuracy:  99.42%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0131 | Train Accuracy: 99.58%                                                                                                                                            
+Epoch 6 | Test Loss:  0.0273 | Test Accuracy:  99.30%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0134 | Train Accuracy: 99.58%                                                                                                                                            
+Epoch 7 | Test Loss:  0.0190 | Test Accuracy:  99.43%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0091 | Train Accuracy: 99.73%                                                                                                                                            
+Epoch 8 | Test Loss:  0.0324 | Test Accuracy:  99.14%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0107 | Train Accuracy: 99.66%                                                                                                                                            
+Epoch 9 | Test Loss:  0.0174 | Test Accuracy:  99.52%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0094 | Train Accuracy: 99.69%                                                                                                                                           
+Epoch 10 | Test Loss:  0.0244 | Test Accuracy:  99.36%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 11.181642 Million
+Training time: 74.75 minutes
+====================
+
+Training (MOBILENET) on (MNIST) with pretrained=True
+Model parameters: 1.528 Million
+Epoch 1 | Train Loss: 0.0708 | Train Accuracy: 97.86%                                                                                                                                            
+Epoch 1 | Test Loss:  0.0472 | Test Accuracy:  98.58%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.0247 | Train Accuracy: 99.27%                                                                                                                                            
+Epoch 2 | Test Loss:  0.0294 | Test Accuracy:  99.02%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.0204 | Train Accuracy: 99.39%                                                                                                                                            
+Epoch 3 | Test Loss:  0.0965 | Test Accuracy:  97.16%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.0177 | Train Accuracy: 99.46%                                                                                                                                            
+Epoch 4 | Test Loss:  0.0218 | Test Accuracy:  99.26%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.0129 | Train Accuracy: 99.63%                                                                                                                                            
+Epoch 5 | Test Loss:  0.0296 | Test Accuracy:  99.12%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0148 | Train Accuracy: 99.58%                                                                                                                                            
+Epoch 6 | Test Loss:  0.0323 | Test Accuracy:  98.92%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0128 | Train Accuracy: 99.61%                                                                                                                                            
+Epoch 7 | Test Loss:  0.0207 | Test Accuracy:  99.31%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0122 | Train Accuracy: 99.61%                                                                                                                                            
+Epoch 8 | Test Loss:  0.0392 | Test Accuracy:  98.94%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0097 | Train Accuracy: 99.70%                                                                                                                                            
+Epoch 9 | Test Loss:  0.0184 | Test Accuracy:  99.49%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0084 | Train Accuracy: 99.73%                                                                                                                                           
+Epoch 10 | Test Loss:  0.0388 | Test Accuracy:  98.86%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 1.528106 Million
+Training time: 38.01 minutes
+====================
+
+Training (RESNET) on (FashionMNIST) with pretrained=True
+Model parameters: 11.182 Million
+Epoch 1 | Train Loss: 0.2809 | Train Accuracy: 89.77%                                                                                                                                            
+Epoch 1 | Test Loss:  0.3007 | Test Accuracy:  89.48%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.1861 | Train Accuracy: 93.29%                                                                                                                                            
+Epoch 2 | Test Loss:  0.2048 | Test Accuracy:  92.97%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.1544 | Train Accuracy: 94.37%                                                                                                                                            
+Epoch 3 | Test Loss:  0.1940 | Test Accuracy:  93.23%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.1287 | Train Accuracy: 95.31%                                                                                                                                            
+Epoch 4 | Test Loss:  0.1928 | Test Accuracy:  93.17%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.1045 | Train Accuracy: 96.23%                                                                                                                                            
+Epoch 5 | Test Loss:  0.1922 | Test Accuracy:  93.98%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0796 | Train Accuracy: 97.13%                                                                                                                                            
+Epoch 6 | Test Loss:  0.2234 | Test Accuracy:  93.27%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0659 | Train Accuracy: 97.57%                                                                                                                                            
+Epoch 7 | Test Loss:  0.2058 | Test Accuracy:  93.82%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0501 | Train Accuracy: 98.20%                                                                                                                                            
+Epoch 8 | Test Loss:  0.2203 | Test Accuracy:  93.58%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0386 | Train Accuracy: 98.57%                                                                                                                                            
+Epoch 9 | Test Loss:  0.2850 | Test Accuracy:  92.89%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0334 | Train Accuracy: 98.82%                                                                                                                                           
+Epoch 10 | Test Loss:  0.2642 | Test Accuracy:  93.71%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 11.181642 Million
+Training time: 77.41 minutes
+====================
+
+Training (MOBILENET) on (FashionMNIST) with pretrained=True
+Model parameters: 1.528 Million
+Epoch 1 | Train Loss: 0.2695 | Train Accuracy: 90.49%                                                                                                                                            
+Epoch 1 | Test Loss:  0.2341 | Test Accuracy:  91.77%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.1692 | Train Accuracy: 93.90%                                                                                                                                            
+Epoch 2 | Test Loss:  0.2292 | Test Accuracy:  91.72%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.1401 | Train Accuracy: 94.94%                                                                                                                                            
+Epoch 3 | Test Loss:  0.2242 | Test Accuracy:  92.04%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.1164 | Train Accuracy: 95.69%                                                                                                                                            
+Epoch 4 | Test Loss:  0.2084 | Test Accuracy:  93.20%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.1030 | Train Accuracy: 96.27%                                                                                                                                            
+Epoch 5 | Test Loss:  0.2257 | Test Accuracy:  92.50%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0866 | Train Accuracy: 96.79%                                                                                                                                            
+Epoch 6 | Test Loss:  0.2050 | Test Accuracy:  93.76%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0728 | Train Accuracy: 97.39%                                                                                                                                            
+Epoch 7 | Test Loss:  0.2489 | Test Accuracy:  92.54%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0658 | Train Accuracy: 97.66%                                                                                                                                            
+Epoch 8 | Test Loss:  0.2364 | Test Accuracy:  93.25%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0538 | Train Accuracy: 98.05%                                                                                                                                            
+Epoch 9 | Test Loss:  0.2740 | Test Accuracy:  92.23%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0478 | Train Accuracy: 98.35%                                                                                                                                           
+Epoch 10 | Test Loss:  0.2877 | Test Accuracy:  92.50%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 1.528106 Million
+Training time: 38.19 minutes
+====================
+Files already downloaded and verified
+Files already downloaded and verified
+
+Training (RESNET) on (CIFAR10) with pretrained=True
+Model parameters: 11.182 Million
+Epoch 1 | Train Loss: 0.4682 | Train Accuracy: 83.91%                                                                                                                                            
+Epoch 1 | Test Loss:  0.3538 | Test Accuracy:  88.06%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.2575 | Train Accuracy: 91.22%                                                                                                                                            
+Epoch 2 | Test Loss:  0.3452 | Test Accuracy:  88.33%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.1699 | Train Accuracy: 94.13%                                                                                                                                            
+Epoch 3 | Test Loss:  0.4400 | Test Accuracy:  86.81%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.1216 | Train Accuracy: 95.77%                                                                                                                                            
+Epoch 4 | Test Loss:  0.3688 | Test Accuracy:  88.42%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.0946 | Train Accuracy: 96.75%                                                                                                                                            
+Epoch 5 | Test Loss:  0.3642 | Test Accuracy:  89.94%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0717 | Train Accuracy: 97.57%                                                                                                                                            
+Epoch 6 | Test Loss:  0.3369 | Test Accuracy:  90.28%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0668 | Train Accuracy: 97.67%                                                                                                                                            
+Epoch 7 | Test Loss:  0.3709 | Test Accuracy:  90.43%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0476 | Train Accuracy: 98.40%                                                                                                                                            
+Epoch 8 | Test Loss:  0.3300 | Test Accuracy:  91.39%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0549 | Train Accuracy: 98.12%                                                                                                                                            
+Epoch 9 | Test Loss:  0.3699 | Test Accuracy:  90.90%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0425 | Train Accuracy: 98.58%                                                                                                                                           
+Epoch 10 | Test Loss:  0.4317 | Test Accuracy:  88.77%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 11.181642 Million
+Training time: 64.86 minutes
+====================
+
+Training (MOBILENET) on (CIFAR10) with pretrained=True
+Model parameters: 1.528 Million
+Epoch 1 | Train Loss: 0.3390 | Train Accuracy: 88.42%                                                                                                                                            
+Epoch 1 | Test Loss:  0.2658 | Test Accuracy:  90.87%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.1598 | Train Accuracy: 94.48%                                                                                                                                            
+Epoch 2 | Test Loss:  0.4306 | Test Accuracy:  85.62%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.1131 | Train Accuracy: 96.03%                                                                                                                                            
+Epoch 3 | Test Loss:  0.3201 | Test Accuracy:  90.12%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.0898 | Train Accuracy: 96.76%                                                                                                                                            
+Epoch 4 | Test Loss:  0.3239 | Test Accuracy:  90.39%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.0683 | Train Accuracy: 97.60%                                                                                                                                            
+Epoch 5 | Test Loss:  0.2935 | Test Accuracy:  91.33%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.0596 | Train Accuracy: 97.95%                                                                                                                                            
+Epoch 6 | Test Loss:  0.3035 | Test Accuracy:  91.50%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.0545 | Train Accuracy: 98.07%                                                                                                                                            
+Epoch 7 | Test Loss:  0.4230 | Test Accuracy:  88.84%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.0498 | Train Accuracy: 98.28%                                                                                                                                            
+Epoch 8 | Test Loss:  0.3464 | Test Accuracy:  91.90%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.0427 | Train Accuracy: 98.49%                                                                                                                                            
+Epoch 9 | Test Loss:  0.3606 | Test Accuracy:  90.99%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.0432 | Train Accuracy: 98.54%                                                                                                                                           
+Epoch 10 | Test Loss:  0.4093 | Test Accuracy:  89.78%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 1.528106 Million
+Training time: 32.17 minutes
+====================
+Files already downloaded and verified
+Files already downloaded and verified
+
+Training (RESNET) on (CIFAR100) with pretrained=True
+Model parameters: 11.228 Million
+Epoch 1 | Train Loss: 1.7634 | Train Accuracy: 51.73%                                                                                                                                            
+Epoch 1 | Test Loss:  1.5603 | Test Accuracy:  56.29%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 1.0116 | Train Accuracy: 69.85%                                                                                                                                            
+Epoch 2 | Test Loss:  1.2158 | Test Accuracy:  65.18%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.6593 | Train Accuracy: 79.86%                                                                                                                                            
+Epoch 3 | Test Loss:  1.2103 | Test Accuracy:  66.54%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.4300 | Train Accuracy: 86.45%                                                                                                                                            
+Epoch 4 | Test Loss:  1.3030 | Test Accuracy:  66.41%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.2914 | Train Accuracy: 90.69%                                                                                                                                            
+Epoch 5 | Test Loss:  1.3345 | Test Accuracy:  67.60%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.2048 | Train Accuracy: 93.47%                                                                                                                                            
+Epoch 6 | Test Loss:  1.2911 | Test Accuracy:  68.99%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.1439 | Train Accuracy: 95.42%                                                                                                                                            
+Epoch 7 | Test Loss:  1.4104 | Test Accuracy:  68.05%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.1452 | Train Accuracy: 95.41%                                                                                                                                            
+Epoch 8 | Test Loss:  1.4643 | Test Accuracy:  67.66%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.1538 | Train Accuracy: 95.04%                                                                                                                                            
+Epoch 9 | Test Loss:  1.5037 | Test Accuracy:  67.35%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.1090 | Train Accuracy: 96.65%                                                                                                                                           
+Epoch 10 | Test Loss:  1.5704 | Test Accuracy:  67.89%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 11.227812 Million
+Training time: 68.90 minutes
+====================
+
+Training (MOBILENET) on (CIFAR100) with pretrained=True
+Model parameters: 1.620 Million
+Epoch 1 | Train Loss: 1.3197 | Train Accuracy: 62.68%                                                                                                                                            
+Epoch 1 | Test Loss:  1.0003 | Test Accuracy:  69.59%                                                                                                                                            
+--------------------
+Epoch 2 | Train Loss: 0.7005 | Train Accuracy: 78.14%                                                                                                                                            
+Epoch 2 | Test Loss:  1.0221 | Test Accuracy:  70.45%                                                                                                                                            
+--------------------
+Epoch 3 | Train Loss: 0.5085 | Train Accuracy: 83.90%                                                                                                                                            
+Epoch 3 | Test Loss:  0.9979 | Test Accuracy:  72.40%                                                                                                                                            
+--------------------
+Epoch 4 | Train Loss: 0.3856 | Train Accuracy: 87.39%                                                                                                                                            
+Epoch 4 | Test Loss:  0.9021 | Test Accuracy:  74.36%                                                                                                                                            
+--------------------
+Epoch 5 | Train Loss: 0.2999 | Train Accuracy: 90.08%                                                                                                                                            
+Epoch 5 | Test Loss:  1.0199 | Test Accuracy:  73.27%                                                                                                                                            
+--------------------
+Epoch 6 | Train Loss: 0.2437 | Train Accuracy: 91.71%                                                                                                                                            
+Epoch 6 | Test Loss:  1.0422 | Test Accuracy:  73.73%                                                                                                                                            
+--------------------
+Epoch 7 | Train Loss: 0.2120 | Train Accuracy: 92.82%                                                                                                                                            
+Epoch 7 | Test Loss:  1.0887 | Test Accuracy:  73.82%                                                                                                                                            
+--------------------
+Epoch 8 | Train Loss: 0.1772 | Train Accuracy: 94.01%                                                                                                                                            
+Epoch 8 | Test Loss:  1.2910 | Test Accuracy:  71.22%                                                                                                                                            
+--------------------
+Epoch 9 | Train Loss: 0.1547 | Train Accuracy: 94.77%                                                                                                                                            
+Epoch 9 | Test Loss:  1.4641 | Test Accuracy:  67.85%                                                                                                                                            
+--------------------
+Epoch 10 | Train Loss: 0.1472 | Train Accuracy: 95.10%                                                                                                                                           
+Epoch 10 | Test Loss:  1.1412 | Test Accuracy:  75.67%                                                                                                                                           
+--------------------
+Finished Training
+Parameters: 1.620356 Million
+Training time: 31.49 minutes
