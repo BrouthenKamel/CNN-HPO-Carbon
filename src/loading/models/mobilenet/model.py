@@ -97,6 +97,10 @@ class MobileNetV3Small(nn.Module):
         if pretrained:
             weights = models.MobileNet_V3_Small_Weights.IMAGENET1K_V1
             state_dict = weights.get_state_dict()
+            # prefixes of feature extractor within freezed
+            for f in range(freeze_blocks_until-1, len(self.features)):
+                prefix = f"features.{f}."
+                state_dict = {k: v for k, v in state_dict.items() if not k.startswith(prefix)}
             state_dict = {k: v for k, v in state_dict.items() if not k.startswith("classifier.")}
             self.load_state_dict(state_dict, strict=False)
             

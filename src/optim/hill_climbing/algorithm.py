@@ -40,9 +40,8 @@ def hill_climbing_optimization(
     param_modification_ratio: float = 0.5,
     perturbation_intensity: int = 1,
     perturbation_strategy: str = "local",
-    freeze_blocks_until: int = 0,
+    freeze_blocks_until: int = 0
 ):
-    
     stage_schedule = [max_epochs // 4, max_epochs // 2, max_epochs]
     pretrained = freeze_blocks_until > 0
 
@@ -53,37 +52,52 @@ def hill_climbing_optimization(
     optimizer = None
 
     _, optimizer, current_perf = evaluate(model, dataset, max_epochs, optimizer)
-    history = []
-    
-    history.append({
+    history = [{
         'iteration': 0,
         'best_hp': current_hp.to_dict(),
         'best_perf': current_perf,
-    })
+    }]
 
     for iter_idx in range(iterations):
         print(f"\n=== Iteration {iter_idx+1}/{iterations} ===")
+        stage1_epochs = stage_schedule[0]
 
-        # Generate neighbors
-        neighbors = [hp_space.neighbor(
-            current_hp,
-            block_modification_ratio,
-            param_modification_ratio,
-            perturbation_intensity,
-            perturbation_strategy
-        ) for _ in range(neighbors_per_iteration)]
-
-        # Prepare candidate containers
+        # Incrementally generate and evaluate valid neighbors at Stage 1
         candidates = []
-        for hp in neighbors:
-            model = MobileNetV3Small(MobileNetConfig.from_hp(hp), dataset.num_classes, pretrained=pretrained, freeze_blocks_until=freeze_blocks_until)
-            candidates.append({'hp': hp, 'model': model, 'optimizer': None, 'score': None})
+        while len(candidates) < neighbors_per_iteration:
+            candidate_hp = hp_space.neighbor(
+                current_hp,
+                block_modification_ratio,
+                param_modification_ratio,
+                perturbation_intensity,
+                perturbation_strategy
+            )
+            model = MobileNetV3Small(
+                MobileNetConfig.from_hp(candidate_hp),
+                dataset.num_classes,
+                pretrained=pretrained,
+                freeze_blocks_until=freeze_blocks_until
+            )
 
-        # Progressive staged training
-        for stage_idx, stage_epochs in enumerate(stage_schedule[:-1]):
-            print(f"\n→ Stage {stage_idx+1}: Training {len(candidates)} candidates @ {stage_epochs} epochs")
+            try:
+                model, optimizer, acc = evaluate(model, dataset, stage1_epochs, optimizer=None)
+                candidates.append({
+                    'hp': candidate_hp,
+                    'model': model,
+                    'optimizer': optimizer,
+                    'score': acc
+                })
+            except Exception as e:
+                torch.cuda.empty_cache()
+                print(f"Candidate skipped during Stage 1 due to error: {e}")
 
+        print(f"\n→ Stage 1: {len(candidates)} candidates passed evaluation @ {stage1_epochs} epochs")
+
+        # Progressive training (Stages 2+)
+        for stage_idx, stage_epochs in enumerate(stage_schedule[1:-1], start=2):
+            print(f"\n→ Stage {stage_idx}: Training {len(candidates)} candidates @ {stage_epochs} epochs")
             next_candidates = []
+
             for i, candidate in enumerate(candidates):
                 try:
                     model, optimizer, acc = evaluate(candidate['model'], dataset, stage_epochs, candidate['optimizer'])
@@ -93,21 +107,23 @@ def hill_climbing_optimization(
                     next_candidates.append(candidate)
                 except Exception as e:
                     torch.cuda.empty_cache()
-                    print(f"Candidate {i+1} failed:", e)
+                    print(f"Candidate {i+1} failed during Stage {stage_idx}: {e}")
 
             if not next_candidates:
-                print("All candidates failed.")
+                print("All candidates failed in intermediate stage.")
                 break
 
             next_candidates.sort(key=lambda x: x['score'], reverse=True)
             candidates = next_candidates[:max(1, len(next_candidates) // 2)]
 
-        # Final stage
+        # Final stage evaluation
         best_candidate = candidates[0]
         print(f"\n→ Final Stage: Retraining best candidate @ {max_epochs} epochs")
 
         try:
-            final_model, final_opt, final_perf = evaluate(best_candidate['model'], dataset, max_epochs, best_candidate['optimizer'])
+            final_model, final_opt, final_perf = evaluate(
+                best_candidate['model'], dataset, max_epochs, best_candidate['optimizer']
+            )
         except Exception as e:
             torch.cuda.empty_cache()
             print("Final evaluation failed:", e)

@@ -27,7 +27,7 @@ best_hp, history = hill_climbing_optimization(
     param_modification_ratio=0.5,
     perturbation_intensity=1,
     perturbation_strategy="local",
-    freeze_blocks_until=12
+    freeze_blocks_until=2
 )
 
 # Print results
