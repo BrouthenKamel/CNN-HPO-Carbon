@@ -171,7 +171,7 @@
                 "dropout_rate": 0.2
             }
         },
-        "best_perf": 65.38
+        "best_perf": 0.43722251799102063
     },
     {
         "iteration": 1,
@@ -337,14 +337,14 @@
                 "channels": 576,
                 "kernel_size": 1,
                 "stride": 1,
-                "activation": "Hardswish"
+                "activation": "ReLU"
             },
             "classifier_hp": {
                 "neurons": 1024,
                 "activation": "Hardswish",
-                "dropout_rate": 0.2
+                "dropout_rate": 0.1
             }
         },
-        "best_perf": 65.38
+        "best_perf": 0.9912675868105492
     }
 ]
