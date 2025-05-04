@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Optional, List
 from pydantic import BaseModel
 import torch.nn as nn
+import torch
 
 class OptimizerType(str, Enum):
     SGD = 'sgd'
@@ -31,6 +32,7 @@ class History(BaseModel):
         self.epochs.append(Epoch(epoch=epoch, train_loss=train_loss, test_loss=test_loss, train_accuracy=train_accuracy, test_accuracy=test_accuracy))
 
 class TrainingResult:
-    def __init__(self, model: nn.Module, history: History):
+    def __init__(self, model: nn.Module, history: History, optimizer: torch.optim.Optimizer = None):
         self.model = model
         self.history = history
+        self.optimizer = optimizer

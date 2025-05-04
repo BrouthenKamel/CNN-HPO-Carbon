@@ -1,82 +1,42 @@
 import warnings
 warnings.filterwarnings("ignore")
 
-import time
-import pandas as pd
+import json
 
-from src.loading.models.mobilenet.config import MobileNetConfig
-from src.loading.models.mobilenet.model import MobileNetV3Small
-from src.loading.models.mobilenet.hp import MobileNetHP, original_hp
+from src.loading.models.mobilenet.hp import original_hp
 from src.loading.models.mobilenet.space import MobileNetHPSpace
-from src.training.train import train_model, count_parameters
 from src.loading.data.loader import load_dataset
 from src.schema.dataset import DatasetName
-from src.schema.training import TrainingParams, OptimizerType
-from src.surrogate_modeling.rbf.model import GPRegressorSurrogate
 from src.optim.hill_climbing.algorithm import hill_climbing_optimization
 
-print("Preparing training configuration and dataset...")
-training_params = TrainingParams(
-    epochs=10,
-    batch_size=64,
-    learning_rate=0.005,
-    optimizer=OptimizerType.ADAM,
-    momentum=None,
-    weight_decay=None,
-)
+# Load dataset
+dataset = load_dataset(DatasetName.CIFAR10)
 
-dataset_name = DatasetName.CIFAR10
-dataset = load_dataset(dataset_name)
+# Initialize hyperparameter space
+hp_space = MobileNetHPSpace(freeze_blocks_until=11)
 
-print("Initializing hyperparameter space and surrogate model...")
-initial_hp = original_hp
-hp_space = MobileNetHPSpace()
-
-surrogate_model = GPRegressorSurrogate()
-surrogate_model.load_model('src/surrogate_modeling/rbf/models/gpr.pkl')
-
-print("Defining actual evaluation function...")
-def actual_evaluation(hp: MobileNetHP, epochs: int = 20):
-    
-    training_params = TrainingParams(
-        epochs=epochs,
-        batch_size=64,
-        learning_rate=0.005,
-        optimizer=OptimizerType.ADAM,
-        momentum=None,
-        weight_decay=None,
-    )
-    config = MobileNetConfig.from_hp(hp)
-    
-    model = MobileNetV3Small(config, dataset.num_classes)
-    print(f"Model Parameters: {count_parameters(model):.3f}M")
-    
-    start_time = time.time()
-    train_results = train_model(model, dataset, training_params)
-    eval_time = (time.time() - start_time) / 60
-
-    test_accuracy = train_results.history.epochs[-1].test_accuracy
-
-    print(f"Evaluated HP with test_accuracy={test_accuracy:.4f}, time={eval_time:.2f} minutes")
-
-    return test_accuracy
-
-print("Starting hill climbing optimization...")
+# Run hill climbing optimization
 best_hp, history = hill_climbing_optimization(
-    initial_hp=initial_hp,
+    initial_hp=original_hp,
     hp_space=hp_space,
-    surrogate_model=lambda hp_flat: surrogate_model.predict(pd.DataFrame([hp_flat]))[0],
-    actual_evaluation=actual_evaluation,
-    iterations=10,
-    neighbors_per_iteration=10,
-    actual_evaluations_per_iteration=2,
+    dataset=dataset,
+    iterations=1,
+    neighbors_per_iteration=4,
+    max_epochs=4,
     block_modification_ratio=0.3,
     param_modification_ratio=0.5,
     perturbation_intensity=1,
-    perturbation_strategy="local"
+    perturbation_strategy="local",
+    freeze_blocks_until=12
 )
 
+# Print results
 print("=" * 40)
-print("Best Hyperparameters:")
+print("Best Hyperparameters Found:")
 print(best_hp.to_dict())
 print("=" * 40)
+
+with open('src/optim/hill_climbing/history.json', 'w') as f:
+    json.dump(history, f, indent=4)
+
+print("History saved to src/optim/hill_climbing/history.json")

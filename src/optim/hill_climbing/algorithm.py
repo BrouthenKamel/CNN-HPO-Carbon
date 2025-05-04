@@ -1,150 +1,131 @@
-import copy
 import torch
+import time
 
-from src.loading.models.mobilenet.hp import MobileNetHP, original_hp
+from src.loading.models.mobilenet.hp import MobileNetHP
 from src.loading.models.mobilenet.space import MobileNetHPSpace
 from src.training.train import train_model
+from src.schema.training import TrainingParams, OptimizerType
 
-from src.surrogate_modeling.rbf.model import GPRegressorSurrogate
+from src.loading.models.mobilenet.config import MobileNetConfig
+from src.loading.models.mobilenet.model import MobileNetV3Small
 
-def hill_climbing_optimization_surrogate(
-    initial_hp: MobileNetHP,
-    hp_space: MobileNetHPSpace,
-    surrogate_model: callable,
-    actual_evaluation: callable,
-    iterations: int = 10,
-    neighbors_per_iteration: int = 10,
-    actual_evaluations_per_iteration: int = 3,
-    block_modification_ratio: float = 0.3,
-    param_modification_ratio: float = 0.5,
-    perturbation_intensity: int = 1,
-    perturbation_strategy: str = "local"
-):
-    print("Starting Hill Climbing Optimization...")
-    current_hp = initial_hp
-    current_perf = actual_evaluation(current_hp)
-    print(f"Initial performance: {current_perf:.4f}\n")
+def evaluate(model, dataset, epochs: int, optimizer = None):
+    training_params = TrainingParams(
+        epochs=epochs,
+        batch_size=64,
+        learning_rate=0.005,
+        optimizer=OptimizerType.ADAM,
+        momentum=None,
+        weight_decay=None,
+    )
+    
+    start_time = time.time()
+    train_results = train_model(model, dataset, training_params, optimizer=optimizer)
+    eval_time = (time.time() - start_time) / 60
 
-    history = [(copy.deepcopy(current_hp), current_perf)]
+    test_accuracy = train_results.history.epochs[-1].test_accuracy
 
-    for iteration in range(iterations):
-        print(f"=== Iteration {iteration + 1}/{iterations} ===")
-        print("Generating neighbors...")
-        neighbors = [
-            hp_space.neighbor(
-                current_hp,
-                block_modification_ratio,
-                param_modification_ratio,
-                perturbation_intensity,
-                perturbation_strategy
-            )
-            for _ in range(neighbors_per_iteration)
-        ]
+    print(f"Evaluated model with test_accuracy={test_accuracy:.4f}, time={eval_time:.2f} minutes")
 
-        print("Evaluating neighbors with surrogate model...")
-        surrogate_preds = [
-            (neighbor, surrogate_model(neighbor.get_flattened_representation()))
-            for neighbor in neighbors
-        ]
-        surrogate_preds.sort(key=lambda x: x[1], reverse=True)
-
-        top_candidates = surrogate_preds[:actual_evaluations_per_iteration * 3]
-        print(f"Top {len(top_candidates)} candidates selected for actual evaluation")
-
-        actual_evals = []
-        for i, (hp, pred_perf) in enumerate(top_candidates):
-            print(f"\nEvaluating candidate {i+1}/{len(top_candidates)} (Surrogate prediction: {pred_perf:.4f})")
-            try:
-                perf = actual_evaluation(hp)
-                actual_evals.append((hp, perf))
-                print(f"Actual performance: {perf:.4f}")
-            except Exception as e:
-                torch.cuda.empty_cache()
-                print("Failed to evaluate candidate due to error:", e)
-                print("Skipping this candidate...")
-                continue
-            if len(actual_evals) >= actual_evaluations_per_iteration:
-                break
-
-        if actual_evals:
-            best_candidate, best_perf = max(actual_evals, key=lambda x: x[1])
-
-            if best_perf > current_perf:
-                print(f"New best model found with performance: {best_perf:.4f}")
-                current_hp = best_candidate
-                current_perf = best_perf
-            else:
-                print("No improvement found this iteration.")
-        else:
-            print("No valid candidates could be evaluated.")
-
-        history.append((copy.deepcopy(current_hp), current_perf))
-        print(f"End of iteration {iteration + 1}, best so far: {current_perf:.4f}\n")
-
-    print("Optimization finished.")
-    print(f"Best overall performance: {current_perf:.4f}")
-    return current_hp, history
+    return train_results.model, train_results.optimizer, test_accuracy
 
 def hill_climbing_optimization(
     initial_hp: MobileNetHP,
     hp_space: MobileNetHPSpace,
-    actual_evaluation: callable,
+    dataset,
     iterations: int = 10,
     neighbors_per_iteration: int = 4,
     max_epochs: int = 20,
     block_modification_ratio: float = 0.3,
     param_modification_ratio: float = 0.5,
     perturbation_intensity: int = 1,
-    perturbation_strategy: str = "local"
+    perturbation_strategy: str = "local",
+    freeze_blocks_until: int = 0,
 ):
+    
+    stage_schedule = [max_epochs // 4, max_epochs // 2, max_epochs]
+    pretrained = freeze_blocks_until > 0
+
+    # Initial evaluation
     current_hp = initial_hp
-    current_perf = actual_evaluation(current_hp)
-    print(f"Initial performance: {current_perf:.4f}\n")
+    config = MobileNetConfig.from_hp(current_hp)
+    model = MobileNetV3Small(config, dataset.num_classes, pretrained=pretrained, freeze_blocks_until=freeze_blocks_until)
+    optimizer = None
 
-    history = [(copy.deepcopy(current_hp), current_perf)]
+    _, optimizer, current_perf = evaluate(model, dataset, max_epochs, optimizer)
+    history = []
+    
+    history.append({
+        'iteration': 0,
+        'best_hp': current_hp.to_dict(),
+        'best_perf': current_perf,
+    })
 
-    for iteration in range(iterations):
-        print(f"=== Iteration {iteration + 1}/{iterations} ===")
-        print("Generating neighbors...")
-        neighbors = [
-            hp_space.neighbor(
-                current_hp,
-                block_modification_ratio,
-                param_modification_ratio,
-                perturbation_intensity,
-                perturbation_strategy
-            )
-            for _ in range(neighbors_per_iteration)
-        ]
+    for iter_idx in range(iterations):
+        print(f"\n=== Iteration {iter_idx+1}/{iterations} ===")
 
-        actual_evals = []
-        for i, (hp, pred_perf) in enumerate(neighbors):
-            print(f"\nEvaluating candidate {i+1}/{len(neighbors)} (Surrogate prediction: {pred_perf:.4f})")
-            try:
-                perf = actual_evaluation(hp, epochs=max_epochs)
-                actual_evals.append((hp, perf))
-                print(f"Actual performance: {perf:.4f}")
-            except Exception as e:
-                torch.cuda.empty_cache()
-                print("Failed to evaluate candidate due to error:", e)
-                print("Skipping this candidate...")
-                continue
+        # Generate neighbors
+        neighbors = [hp_space.neighbor(
+            current_hp,
+            block_modification_ratio,
+            param_modification_ratio,
+            perturbation_intensity,
+            perturbation_strategy
+        ) for _ in range(neighbors_per_iteration)]
 
-        if actual_evals:
-            best_candidate, best_perf = max(actual_evals, key=lambda x: x[1])
+        # Prepare candidate containers
+        candidates = []
+        for hp in neighbors:
+            model = MobileNetV3Small(MobileNetConfig.from_hp(hp), dataset.num_classes, pretrained=pretrained, freeze_blocks_until=freeze_blocks_until)
+            candidates.append({'hp': hp, 'model': model, 'optimizer': None, 'score': None})
 
-            if best_perf > current_perf:
-                print(f"New best model found with performance: {best_perf:.4f}")
-                current_hp = best_candidate
-                current_perf = best_perf
-            else:
-                print("No improvement found this iteration.")
+        # Progressive staged training
+        for stage_idx, stage_epochs in enumerate(stage_schedule[:-1]):
+            print(f"\n→ Stage {stage_idx+1}: Training {len(candidates)} candidates @ {stage_epochs} epochs")
+
+            next_candidates = []
+            for i, candidate in enumerate(candidates):
+                try:
+                    model, optimizer, acc = evaluate(candidate['model'], dataset, stage_epochs, candidate['optimizer'])
+                    candidate['model'] = model
+                    candidate['optimizer'] = optimizer
+                    candidate['score'] = acc
+                    next_candidates.append(candidate)
+                except Exception as e:
+                    torch.cuda.empty_cache()
+                    print(f"Candidate {i+1} failed:", e)
+
+            if not next_candidates:
+                print("All candidates failed.")
+                break
+
+            next_candidates.sort(key=lambda x: x['score'], reverse=True)
+            candidates = next_candidates[:max(1, len(next_candidates) // 2)]
+
+        # Final stage
+        best_candidate = candidates[0]
+        print(f"\n→ Final Stage: Retraining best candidate @ {max_epochs} epochs")
+
+        try:
+            final_model, final_opt, final_perf = evaluate(best_candidate['model'], dataset, max_epochs, best_candidate['optimizer'])
+        except Exception as e:
+            torch.cuda.empty_cache()
+            print("Final evaluation failed:", e)
+            final_perf = -1
+
+        if final_perf > current_perf:
+            print(f"New best model found! Accuracy: {final_perf:.4f}")
+            current_hp = best_candidate['hp']
+            current_perf = final_perf
         else:
-            print("No valid candidates could be evaluated.")
+            print("Final model did not outperform current best.")
 
-        history.append((copy.deepcopy(current_hp), current_perf))
-        print(f"End of iteration {iteration + 1}, best so far: {current_perf:.4f}\n")
+        history.append({
+            'iteration': iter_idx + 1,
+            'best_hp': current_hp.to_dict(),
+            'best_perf': current_perf,
+        })
+        print(f"Iteration {iter_idx+1} complete. Best so far: {current_perf:.4f}")
 
-    print("Optimization finished.")
-    print(f"Best overall performance: {current_perf:.4f}")
+    print("\nOptimization finished.")
     return current_hp, history

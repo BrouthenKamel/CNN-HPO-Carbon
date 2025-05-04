@@ -79,7 +79,7 @@ def evaluate_model(model: nn.Module, data_loader, criterion, device):
     accuracy = 100 * correct / total
     return avg_loss, accuracy
 
-def train_model(model: nn.Module, dataset, training_params: TrainingParams, patience: int = 5):
+def train_model(model: nn.Module, dataset, training_params: TrainingParams, patience: int = 5, optimizer: torch.optim.Optimizer = None) -> TrainingResult:
     """
     Trains the model on the provided dataset using the specified training parameters.
 
@@ -95,7 +95,8 @@ def train_model(model: nn.Module, dataset, training_params: TrainingParams, pati
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = get_optimizer(model, training_params)
+    if optimizer is None:
+        optimizer = get_optimizer(model, training_params)
 
     train_loader = DataLoader(dataset.train_dataset, batch_size=training_params.batch_size, shuffle=True)
     test_loader = DataLoader(dataset.test_dataset, batch_size=training_params.batch_size, shuffle=False)
@@ -104,6 +105,7 @@ def train_model(model: nn.Module, dataset, training_params: TrainingParams, pati
 
     best_accuracy = 0.0
     best_model_state = None
+    best_optimizer_state = None
     epochs_since_improvement = 0
 
     for epoch in range(training_params.epochs):
@@ -148,6 +150,7 @@ def train_model(model: nn.Module, dataset, training_params: TrainingParams, pati
         if test_accuracy > best_accuracy:
             best_accuracy = test_accuracy
             best_model_state = model.state_dict()
+            best_optimizer_state = optimizer.state_dict()
             epochs_since_improvement = 0
         else:
             epochs_since_improvement += 1
@@ -162,8 +165,9 @@ def train_model(model: nn.Module, dataset, training_params: TrainingParams, pati
 
     if best_model_state is not None:
         model.load_state_dict(best_model_state)
+        optimizer.load_state_dict(best_optimizer_state)
 
-    return TrainingResult(model, history)
+    return TrainingResult(model, history, optimizer)
 
 # def train_model_with_args(args):
 #     """
