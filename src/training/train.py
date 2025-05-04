@@ -79,7 +79,7 @@ def evaluate_model(model: nn.Module, data_loader, criterion, device):
     accuracy = 100 * correct / total
     return avg_loss, accuracy
 
-def train_model(model: nn.Module, dataset, training_params):
+def train_model(model: nn.Module, dataset, training_params: TrainingParams, patience: int = 5):
     """
     Trains the model on the provided dataset using the specified training parameters.
 
@@ -89,7 +89,6 @@ def train_model(model: nn.Module, dataset, training_params):
         training_params: An object with 'batch_size', 'epochs', and other training parameters.
     """
     print(f"Model parameters: {count_parameters(model):.3f} Million")
-    
     torch.autograd.set_detect_anomaly(True)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -100,8 +99,12 @@ def train_model(model: nn.Module, dataset, training_params):
 
     train_loader = DataLoader(dataset.train_dataset, batch_size=training_params.batch_size, shuffle=True)
     test_loader = DataLoader(dataset.test_dataset, batch_size=training_params.batch_size, shuffle=False)
-    
+
     history = History(epochs=[])
+
+    best_accuracy = 0.0
+    best_model_state = None
+    epochs_since_improvement = 0
 
     for epoch in range(training_params.epochs):
         model.train()
@@ -133,7 +136,7 @@ def train_model(model: nn.Module, dataset, training_params):
 
         test_loss, test_accuracy = evaluate_model(model, test_loader, criterion, device)
         print(f"Epoch {epoch+1} | Test Loss:  {test_loss:.4f} | Test Accuracy:  {test_accuracy:.2f}%")
-        
+
         history.record_epoch(
             epoch=epoch+1,
             train_loss=avg_train_loss,
@@ -141,12 +144,25 @@ def train_model(model: nn.Module, dataset, training_params):
             train_accuracy=train_accuracy,
             test_accuracy=test_accuracy
         )
-        
+
+        if test_accuracy > best_accuracy:
+            best_accuracy = test_accuracy
+            best_model_state = model.state_dict()
+            epochs_since_improvement = 0
+        else:
+            epochs_since_improvement += 1
+            if epochs_since_improvement >= patience:
+                print(f"No improvement in {patience} epochs. Early stopping.")
+                break
+
         print('-' * 20)
 
     torch.cuda.empty_cache()
-    print("Finished Training")
-    
+    print(f"Finished Training. Best Test Accuracy: {best_accuracy:.2f}%")
+
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
+
     return TrainingResult(model, history)
 
 # def train_model_with_args(args):

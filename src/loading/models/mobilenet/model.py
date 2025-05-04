@@ -1,3 +1,5 @@
+from typing import Union
+
 import torch
 import torch.nn as nn
 from torchvision import models
@@ -65,7 +67,7 @@ class InvertedResidual(nn.Module):
 
 class MobileNetV3Small(nn.Module):
     
-    def __init__(self, config: MobileNetConfig = original_config, num_classes=1000, weights=None):
+    def __init__(self, config: MobileNetConfig = original_config, num_classes=1000, pretrained: bool = False, freeze_blocks_until: Union[int, str] = 0):
         super().__init__()
 
         layers = []
@@ -92,8 +94,20 @@ class MobileNetV3Small(nn.Module):
             nn.Linear(config.classifier_config.neurons, num_classes)
         )
 
-        if weights is not None:
-            self.load_state_dict(weights.get_state_dict())
+        if pretrained:
+            weights = models.MobileNet_V3_Small_Weights.IMAGENET1K_V1
+            state_dict = weights.get_state_dict()
+            state_dict = {k: v for k, v in state_dict.items() if not k.startswith("classifier.")}
+            self.load_state_dict(state_dict, strict=False)
+            
+            if freeze_blocks_until == "all":
+                freeze_blocks_until = len(self.features)
+                
+            if freeze_blocks_until > 0:
+                freezeable_layers = [layer for layer in self.features if isinstance(layer, (ConvBNActivation, InvertedResidual))]
+                for layer in freezeable_layers[:freeze_blocks_until]:
+                    for param in layer.parameters():
+                        param.requires_grad = False
 
     def forward(self, x):
         x = self.features(x)
@@ -102,9 +116,8 @@ class MobileNetV3Small(nn.Module):
         x = self.classifier(x)
         return x
 
-
 if __name__ == "__main__":
     
-    custom_model = MobileNetV3Small(weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1)
+    custom_model = MobileNetV3Small(pretrained=True, freeze_blocks_until=5)
     
     print("Loaded weights successfully!")

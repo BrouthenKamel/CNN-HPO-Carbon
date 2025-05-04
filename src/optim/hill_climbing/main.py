@@ -19,7 +19,7 @@ print("Preparing training configuration and dataset...")
 training_params = TrainingParams(
     epochs=10,
     batch_size=64,
-    learning_rate=0.0025,
+    learning_rate=0.005,
     optimizer=OptimizerType.ADAM,
     momentum=None,
     weight_decay=None,
@@ -36,12 +36,22 @@ surrogate_model = GPRegressorSurrogate()
 surrogate_model.load_model('src/surrogate_modeling/rbf/models/gpr.pkl')
 
 print("Defining actual evaluation function...")
-def actual_evaluation(hp: MobileNetHP):
+def actual_evaluation(hp: MobileNetHP, epochs: int = 20):
+    
+    training_params = TrainingParams(
+        epochs=epochs,
+        batch_size=64,
+        learning_rate=0.005,
+        optimizer=OptimizerType.ADAM,
+        momentum=None,
+        weight_decay=None,
+    )
     config = MobileNetConfig.from_hp(hp)
+    
     model = MobileNetV3Small(config, dataset.num_classes)
     print(f"Model Parameters: {count_parameters(model):.3f}M")
+    
     start_time = time.time()
-
     train_results = train_model(model, dataset, training_params)
     eval_time = (time.time() - start_time) / 60
 

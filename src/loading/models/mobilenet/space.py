@@ -13,11 +13,13 @@ def multiples_of(base: int, start: int, stop: int) -> list[int]:
     return [base * i for i in range(start, stop+1)]
 
 class MobileNetHPSpace:
-    def __init__(self, reference: MobileNetHP = original_hp, num_blocks=11):
+    def __init__(self, reference: MobileNetHP = original_hp, num_blocks: int = 11, freeze_blocks_until: int = 0):
         self.reference = reference
+        self.num_blocks = num_blocks
+        self.freeze_blocks_until = freeze_blocks_until
         
         self.activation_choices = ["ReLU", "Hardswish"]
-        self.squeeze_factor_choices = [2, 4, 8]
+        self.squeeze_factor_choices = [4, 8]
         self.se_activation_choices = ["Hardsigmoid", "Sigmoid"]
 
         self.channel_choices = multiples_of(8, 1, 20)
@@ -29,8 +31,6 @@ class MobileNetHPSpace:
         self.dropout_choices = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
         
         self.last_conv_upsample_choices = [2, 4, 6, 8]
-
-        self.num_blocks = num_blocks
 
     def sample(self) -> MobileNetHP:
         def random_conv_hp(channels=None, max_channels=None):
@@ -107,7 +107,7 @@ class MobileNetHPSpace:
         block_modification_ratio: float = 0.5,
         param_modification_ratio: float = 0.2,
         perturbation_intensity: int = 1,
-        perturbation_strategy: str = "local"
+        perturbation_strategy: str = "local",
     ) -> MobileNetHP:
 
         def perturb_choice(choices, current, intensity, strategy):
@@ -128,13 +128,11 @@ class MobileNetHPSpace:
 
         def should_modify(ratio):
             decision = random.random() < ratio
-            # if decision:
-            #     print(f"Decision: Modify")
             return decision
 
         # Perturb Initial Conv
         ref_ic = reference_hp.initial_conv_hp
-        if should_modify(block_modification_ratio):
+        if self.freeze_blocks_until == 0 and should_modify(block_modification_ratio):
             initial_conv_hp = ConvBNActivationHP(
                 channels=perturb_choice(self.channel_choices, ref_ic.channels, perturbation_intensity, perturbation_strategy) if should_modify(param_modification_ratio) else ref_ic.channels,
                 kernel_size=perturb_choice(self.kernel_size_choices, ref_ic.kernel_size, perturbation_intensity, perturbation_strategy) if should_modify(param_modification_ratio) else ref_ic.kernel_size,
@@ -147,10 +145,10 @@ class MobileNetHPSpace:
         # Perturb IR Blocks
         inverted_residual_hps = []
         prev_out_ch = initial_conv_hp.channels
-        for ref_ir in reference_hp.inverted_residual_hps:
+        for i, ref_ir in enumerate(reference_hp.inverted_residual_hps):
             ref_conv = ref_ir.conv_bn_activation_hp
 
-            if should_modify(block_modification_ratio):
+            if ((i+1) >= self.freeze_blocks_until) and should_modify(block_modification_ratio):
                 out_ch = perturb_choice(
                     [c for c in self.channel_choices if c >= prev_out_ch],
                     ref_conv.channels,
@@ -198,7 +196,7 @@ class MobileNetHPSpace:
             prev_out_ch = out_ch
 
         # Perturb Last Conv
-        if should_modify(block_modification_ratio):
+        if self.freeze_blocks_until != 'all' and should_modify(block_modification_ratio):
             last_conv_upsample = perturb_choice(
                 self.last_conv_upsample_choices,
                 reference_hp.last_conv_upsample,
@@ -231,3 +229,10 @@ class MobileNetHPSpace:
             last_conv_hp=last_conv_hp,
             classifier_hp=classifier_hp
         )
+
+if __name__ == "__main__":
+    hp_space = MobileNetHPSpace()
+    sampled_hp = hp_space.sample()
+    print(sampled_hp.to_dict())
+    neighbor_hp = hp_space.neighbor(sampled_hp)
+    print(neighbor_hp.to_dict())
