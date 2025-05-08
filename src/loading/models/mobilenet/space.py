@@ -19,18 +19,19 @@ class MobileNetHPSpace:
         self.freeze_blocks_until = freeze_blocks_until
         
         self.activation_choices = ["ReLU", "Hardswish"]
-        self.squeeze_factor_choices = [4, 8]
+        self.squeeze_factor_choices = [4, 8, 16]
+        self.use_se_choices = [True, False]
         self.se_activation_choices = ["Hardsigmoid", "Sigmoid"]
 
         self.channel_choices = multiples_of(8, 1, 20)
         self.expand_channels_choices = multiples_of(8, 1, 40)
-        self.classifier_neuron_choices = multiples_of(256, 1, 4)
+        self.classifier_neuron_choices = multiples_of(64, 1, 16)
 
         self.kernel_size_choices = [3, 5, 7]
         self.stride_choices = [1, 2]
-        self.dropout_choices = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5]
+        self.dropout_choices = [0.1, 0.2, 0.3]
         
-        self.last_conv_upsample_choices = [2, 4, 6, 8]
+        self.last_conv_upsample_choices = [1, 2, 4, 6]
 
     def sample(self) -> MobileNetHP:
         def random_conv_hp(channels=None, max_channels=None):

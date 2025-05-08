@@ -19,7 +19,7 @@ save_path = os.path.join(base_dir, 'pretraining_augment.json')
 record = []
 
 training_params = TrainingParams(
-    epochs=10,
+    epochs=20,
     batch_size=128,
     learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
@@ -27,7 +27,7 @@ training_params = TrainingParams(
     weight_decay=None,
 )
 
-freeze = [7]
+freeze = [8]
 
 dataset_name = DatasetName.CIFAR10
 dataset = load_dataset(dataset_name, augment=True, augmentation_type='basic')

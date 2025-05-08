@@ -13,7 +13,8 @@ from src.optim.hill_climbing.algorithm import hill_climbing_optimization
 dataset = load_dataset(DatasetName.CIFAR10)
 
 # Initialize hyperparameter space
-hp_space = MobileNetHPSpace(freeze_blocks_until=2)
+f = 8
+hp_space = MobileNetHPSpace(freeze_blocks_until=f)
 
 # Run hill climbing optimization
 best_hp, history = hill_climbing_optimization(
@@ -27,7 +28,7 @@ best_hp, history = hill_climbing_optimization(
     param_modification_ratio=0.5,
     perturbation_intensity=1,
     perturbation_strategy="local",
-    freeze_blocks_until=2
+    freeze_blocks_until=f
 )
 
 # Print results

@@ -5,12 +5,30 @@ from functools import partial
 from src.loading.models.mobilenet.utils import make_divisible
 from src.loading.models.mobilenet.hp import MobileNetHP, original_hp
 
+def get_activation_layer(activation_layer):
+    if activation_layer == "ReLU":
+        return nn.ReLU
+    elif activation_layer == "LeakyReLU":
+        return nn.LeakyReLU
+    elif activation_layer == "PReLU":
+        return nn.PReLU
+    elif activation_layer == "ELU":
+        return nn.ELU
+    elif activation_layer == "Sigmoid":
+        return nn.Sigmoid
+    elif activation_layer == "Tanh":
+        return nn.Tanh
+    elif activation_layer == "Hardswish":
+        return nn.Hardswish
+    else:
+        raise ValueError(f"Unsupported activation layer: {activation_layer}")
+
 class SqueezeExcitationConfig:
     def __init__(self, squeeze_factor: int = 4, activation_layer: str = "Hardsigmoid"):
         self.squeeze_factor = squeeze_factor
-        self.activation_layer = self.get_activation_layer(activation_layer)
+        self.activation_layer = self._get_activation_layer(activation_layer)
         
-    def get_activation_layer(self, activation_layer):
+    def _get_activation_layer(self, activation_layer):
         if activation_layer == "Hardsigmoid":
             return nn.Hardsigmoid
         elif activation_layer == "Sigmoid":
@@ -30,7 +48,7 @@ class ConvBNActivationConfig:
         self.stride = stride
         self.norm_layer = self.get_norm_layer(norm_layer, eps, momentum)
         
-        self.activation_layer = self.get_activation_layer(activation_layer)
+        self.activation_layer = get_activation_layer(activation_layer)
         
     def get_norm_layer(self, norm_layer, eps, momentum):
         if norm_layer == "BatchNorm2d":
@@ -43,14 +61,6 @@ class ConvBNActivationConfig:
         else:
             raise ValueError(f"Unsupported normalization layer: {self.norm_layer}")
         
-    def get_activation_layer(self, activation_layer):
-        if activation_layer == "ReLU":
-            return nn.ReLU
-        elif activation_layer == "Hardswish":
-            return nn.Hardswish
-        else:
-            raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
-        
 class InvertedResidualConfig:
     def __init__(self, expand_channels: int, use_se: bool, se_config: SqueezeExcitationConfig, conv_bn_activation_config: ConvBNActivationConfig):
         self.use_se = use_se
@@ -62,16 +72,8 @@ class ClassifierConfig:
     def __init__(self, neurons: int, activation_layer: str, dropout_rate: float):
         
         self.neurons = neurons
-        self.activation_layer = self.get_activation_layer(activation_layer)
+        self.activation_layer = get_activation_layer(activation_layer)
         self.dropout_rate = dropout_rate
-    
-    def get_activation_layer(self, activation_layer):
-        if activation_layer == "ReLU":
-            return nn.ReLU
-        elif activation_layer == "Hardswish":
-            return nn.Hardswish
-        else:
-            raise ValueError(f"Unsupported activation layer: {self.activation_layer}")
         
 class MobileNetConfig:
     def __init__(self, initial_conv_config, last_conv_upsample, last_conv_config, inverted_residual_configs, classifier_config):

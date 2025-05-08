@@ -4,7 +4,7 @@ import random
 
 from src.loading.models.mobilenet.hp import MobileNetHP
 from src.loading.models.mobilenet.space import MobileNetHPSpace
-from src.training.train import train_model
+from src.training.train import train_model, count_parameters
 from src.schema.training import TrainingParams, OptimizerType
 
 from src.loading.models.mobilenet.config import MobileNetConfig
@@ -13,8 +13,8 @@ from src.loading.models.mobilenet.model import MobileNetV3Small
 def evaluate(model, dataset, epochs: int, optimizer = None):
     training_params = TrainingParams(
         epochs=epochs,
-        batch_size=64,
-        learning_rate=0.005,
+        batch_size=128,
+        learning_rate=0.001,
         optimizer=OptimizerType.ADAM,
         momentum=None,
         weight_decay=None,
@@ -59,6 +59,7 @@ def hill_climbing_optimization(
         'iteration': 0,
         'best_hp': current_hp.to_dict(),
         'best_perf': current_perf,
+        'parameters': count_parameters(model)
     }]
 
     for iter_idx in range(iterations):
@@ -143,6 +144,7 @@ def hill_climbing_optimization(
             'iteration': iter_idx + 1,
             'best_hp': current_hp.to_dict(),
             'best_perf': current_perf,
+            'parameters': count_parameters(model)
         })
         print(f"Iteration {iter_idx+1} complete. Best so far: {current_perf:.4f}")
 
