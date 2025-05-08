@@ -24,13 +24,13 @@ def evaluate(model, dataset, epochs: int, optimizer = None):
     train_results = train_model(model, dataset, training_params, optimizer=optimizer)
     eval_time = (time.time() - start_time) / 60
 
-    test_accuracy = train_results.history.epochs[-1].test_accuracy
+    best_test_accuracy = train_results.best_test_accuracy
     # test_accuracy = random.random()
 
-    print(f"Evaluated model with test_accuracy={test_accuracy:.4f}, time={eval_time:.2f} minutes")
+    print(f"Evaluated model with test_accuracy={best_test_accuracy:.4f}, time={eval_time:.2f} minutes")
 
-    return train_results.model, train_results.optimizer, test_accuracy
-    # return model, None, test_accuracy
+    return train_results.model, train_results.optimizer, best_test_accuracy
+    return model, None, test_accuracy
 
 def hill_climbing_optimization(
     initial_hp: MobileNetHP,
@@ -69,6 +69,7 @@ def hill_climbing_optimization(
         pretrained = freeze_blocks_until > 0
 
         # Stage 1: Train all neighbors for stage1_epochs
+        print(f"\n→ Stage 1: Training {neighbors_per_iteration} candidates for {stage1_epochs} epochs")
         candidates = []
         while len(candidates) < neighbors_per_iteration:
             candidate_hp = hp_space.neighbor(
@@ -96,8 +97,6 @@ def hill_climbing_optimization(
             except Exception as e:
                 torch.cuda.empty_cache()
                 print(f"Candidate skipped during Stage 1 due to error: {e}")
-
-        print(f"\n→ Stage 1: {len(candidates)} candidates evaluated @ {stage1_epochs} epochs")
 
         # Stage 2: Train top 50% for (stage2 - stage1) additional epochs
         additional_stage2_epochs = stage2_epochs - stage1_epochs

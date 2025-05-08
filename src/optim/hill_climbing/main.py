@@ -13,21 +13,21 @@ from src.optim.hill_climbing.algorithm import hill_climbing_optimization
 dataset = load_dataset(DatasetName.CIFAR10)
 
 # Initialize hyperparameter space
-hp_space = MobileNetHPSpace(freeze_blocks_until=13)
+hp_space = MobileNetHPSpace(freeze_blocks_until=2)
 
 # Run hill climbing optimization
 best_hp, history = hill_climbing_optimization(
     initial_hp=original_hp,
     hp_space=hp_space,
     dataset=dataset,
-    iterations=1,
+    iterations=10,
     neighbors_per_iteration=4,
-    max_epochs=4,
+    max_epochs=20,
     block_modification_ratio=0.3,
     param_modification_ratio=0.5,
     perturbation_intensity=1,
     perturbation_strategy="local",
-    freeze_blocks_until=13
+    freeze_blocks_until=2
 )
 
 # Print results

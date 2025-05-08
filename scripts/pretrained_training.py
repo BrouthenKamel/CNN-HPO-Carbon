@@ -14,23 +14,23 @@ from src.loading.models.mobilenet.model import MobileNetV3Small
 base_dir = './records/'
 os.makedirs(base_dir, exist_ok=True)
 
-save_path = os.path.join(base_dir, 'pretraining_2.json')
+save_path = os.path.join(base_dir, 'pretraining_augment.json')
     
 record = []
 
 training_params = TrainingParams(
-    epochs=20,
-    batch_size=64,
-    learning_rate=0.005,
+    epochs=10,
+    batch_size=128,
+    learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
     momentum=None,
     weight_decay=None,
 )
 
-freeze = [2]
+freeze = [7]
 
 dataset_name = DatasetName.CIFAR10
-dataset = load_dataset(dataset_name)
+dataset = load_dataset(dataset_name, augment=True, augmentation_type='basic')
 hp_space = MobileNetHPSpace(num_blocks=11)
 
 def save_progress(record, path):
@@ -61,7 +61,7 @@ for k in freeze:
     })
 
     save_progress(record, save_path)
-    save_model(model, os.path.join(base_dir, f'model_pretrained_{k}_blocks_20_epochs.pth'))
+    save_model(model, os.path.join(base_dir, f'model_pretrained_{k}_blocks_augment.pth'))
 
     print("=" * 20, '\n')
 

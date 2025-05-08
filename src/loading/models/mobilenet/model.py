@@ -98,7 +98,7 @@ class MobileNetV3Small(nn.Module):
             weights = models.MobileNet_V3_Small_Weights.IMAGENET1K_V1
             state_dict = weights.get_state_dict()
             # prefixes of feature extractor within freezed
-            for f in range(freeze_blocks_until-1, len(self.features)):
+            for f in range(freeze_blocks_until, len(self.features)):
                 prefix = f"features.{f}."
                 state_dict = {k: v for k, v in state_dict.items() if not k.startswith(prefix)}
             state_dict = {k: v for k, v in state_dict.items() if not k.startswith("classifier.")}
@@ -111,7 +111,8 @@ class MobileNetV3Small(nn.Module):
                 freezeable_layers = [layer for layer in self.features if isinstance(layer, (ConvBNActivation, InvertedResidual))]
                 for layer in freezeable_layers[:freeze_blocks_until]:
                     for param in layer.parameters():
-                        param.requires_grad = False
+                        # param.requires_grad = False
+                        pass
 
     def forward(self, x):
         x = self.features(x)

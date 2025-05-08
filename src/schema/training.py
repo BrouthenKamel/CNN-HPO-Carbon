@@ -32,7 +32,8 @@ class History(BaseModel):
         self.epochs.append(Epoch(epoch=epoch, train_loss=train_loss, test_loss=test_loss, train_accuracy=train_accuracy, test_accuracy=test_accuracy))
 
 class TrainingResult:
-    def __init__(self, model: nn.Module, history: History, optimizer: torch.optim.Optimizer = None):
+    def __init__(self, model: nn.Module, history: History, best_test_accuracy: float, optimizer: torch.optim.Optimizer = None):
         self.model = model
         self.history = history
+        self.best_test_accuracy = best_test_accuracy
         self.optimizer = optimizer

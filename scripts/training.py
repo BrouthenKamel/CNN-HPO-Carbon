@@ -27,14 +27,14 @@ for dataset_name in [DatasetName.CIFAR10]:
         # ModelFamily.VGG,
         # ModelFamily.RESNET,
         # ModelFamily.EFFICIENTNET,
-        # ModelFamily.MOBILENET,
+        ModelFamily.MOBILENET,
         # ModelFamily.DENSENET,
         # ModelFamily.REGNET,
         # ModelFamily.SQUEEZENET,
-        ModelFamily.MOBILENETV3,
+        # ModelFamily.MOBILENETV3,
     ]:
         
-        for pretrained in [False]:
+        for pretrained in [True]:
             
             print()
             

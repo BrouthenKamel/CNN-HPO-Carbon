@@ -167,7 +167,7 @@ def train_model(model: nn.Module, dataset, training_params: TrainingParams, pati
         model.load_state_dict(best_model_state)
         optimizer.load_state_dict(best_optimizer_state)
 
-    return TrainingResult(model, history, optimizer)
+    return TrainingResult(model, history, best_accuracy, optimizer)
 
 # def train_model_with_args(args):
 #     """
