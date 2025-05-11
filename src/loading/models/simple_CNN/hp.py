@@ -1,48 +1,56 @@
-from src.schema.model import ModelArchitecture
-from src.schema.block import CNNBlock, MLPBlock
-from src.schema.layer import ConvLayer, PoolingLayer, DropoutLayer, LinearLayer, ActivationLayer, BatchNormLayer, AdaptivePoolingLayer
-from src.schema.training import TrainingParams
-from src.schema.layer import PoolingType, ActivationType
-from src.schema.training import OptimizerType
+from typing import List, Optional, Union
+import random
 
+# Hyperparameter container classes for Simple CNN
+class ConvLayerHP:
+    def __init__(self, filters: int, kernel_size: int, stride: int, padding: int):
+        self.filters = filters
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
 
+    def to_dict(self):
+        return {"filters": self.filters, "kernel_size": self.kernel_size, "stride": self.stride, "padding": self.padding}
 
-SimpleCNNArchitecture = ModelArchitecture(
-    initial_conv_layer=ConvLayer(filters=16, kernel_size=3, stride=1, padding=1),
+class CNNBlockHP:
+    def __init__(self, conv: ConvLayerHP, batch_norm: bool, activation: Optional[str], pooling: Optional[dict]):
+        self.conv = conv
+        self.batch_norm = batch_norm
+        self.activation = activation
+        self.pooling = pooling  # {"type": str, "kernel_size": int, "stride": int, "padding": int}
 
-    cnn_blocks=[
-        CNNBlock(
-            conv_layer=ConvLayer(filters=32, kernel_size=3, stride=1, padding=0),
-            activation_layer=ActivationLayer(type=ActivationType.RELU.value),
-            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=2, stride=1, padding=0),
-            batch_norm_layer=None
-        ),
-        CNNBlock(
-            conv_layer=ConvLayer(filters=64, kernel_size=3, stride=1, padding=0),
-            activation_layer=None,
-            pooling_layer=PoolingLayer(type=PoolingType.MAX.value, kernel_size=2, stride=1, padding=0),
-            batch_norm_layer=None
-        ),
-    ],
-    adaptive_pooling_layer=None,
-    mlp_blocks=[
-        MLPBlock(
-            dropout_layer=None,
-            linear_layer=LinearLayer(neurons=128),
-            activation_layer=ActivationLayer(type=ActivationType.RELU.value),
-        ),
-        MLPBlock(
-            dropout_layer=DropoutLayer(rate=0.2),
-            linear_layer=LinearLayer(neurons=64),
-            activation_layer=ActivationLayer(type=ActivationType.RELU.value),
-        )
-    ],
-    training_params=TrainingParams(
-        epochs=20,
-        batch_size=32,
-        learning_rate=0.01,
-        optimizer=OptimizerType.ADAM.value,
-        momentum=None,
-        weight_decay=None
-    )
-)
+    def to_dict(self):
+        return {"conv": self.conv.to_dict(), "batch_norm": self.batch_norm, "activation": self.activation, "pooling": self.pooling}
+
+class MLPBlockHP:
+    def __init__(self, neurons: int, activation: Optional[str], dropout: Optional[float]):
+        self.neurons = neurons
+        self.activation = activation
+        self.dropout = dropout
+
+    def to_dict(self):
+        return {"neurons": self.neurons, "activation": self.activation, "dropout": self.dropout}
+
+class SimpleCNNHP:
+    def __init__(
+        self,
+        initial_conv: Optional[ConvLayerHP],
+        cnn_block_hps: List[CNNBlockHP],
+        adaptive_pooling: Optional[int],
+        mlp_block_hps: List[MLPBlockHP],
+        training: dict
+    ):
+        self.initial_conv = initial_conv
+        self.cnn_block_hps = cnn_block_hps
+        self.adaptive_pooling = adaptive_pooling
+        self.mlp_block_hps = mlp_block_hps
+        self.training = training  # {"epochs", "batch_size", "learning_rate", "optimizer", ...}
+
+    def to_dict(self):
+        return {
+            "initial_conv": self.initial_conv.to_dict() if self.initial_conv else None,
+            "cnn_blocks": [b.to_dict() for b in self.cnn_block_hps],
+            "adaptive_pooling": self.adaptive_pooling,
+            "mlp_blocks": [m.to_dict() for m in self.mlp_block_hps],
+            "training": self.training
+        }

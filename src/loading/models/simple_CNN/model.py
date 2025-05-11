@@ -1,113 +1,125 @@
-from typing import Union
-
 import torch
 import torch.nn as nn
-from torchvision import models
+from typing import Optional
+from src.loading.models.simple_CNN.hp import SimpleCNNHP
+from src.loading.models.simple_CNN.config import SimpleCNNConfig
+from src.schema.model import ModelArchitecture
+from src.schema.block import CNNBlock, MLPBlock
+from src.schema.layer import (
+    ActivationType,
+    ConvLayer,
+    PoolingLayer,
+    DropoutLayer,
+    LinearLayer,
+    ActivationLayer,
+    BatchNormLayer,
+    AdaptivePoolingLayer
+)
+from src.loading.models.simple_CNN.hp import *
 
-from src.loading.models.simple_CNN.hp import SimpleCNNArchitecture
+_activation_factory = {
+    ActivationType.RELU: lambda: nn.ReLU(inplace=True),
+    ActivationType.SIGMOID: nn.Sigmoid,
+    ActivationType.TANH: nn.Tanh,
+    ActivationType.SOFTMAX: lambda: nn.Softmax(dim=1),
+}
 
-
-
-
-class CNNModel(nn.Module):
-    def __init__(self, config):
-        super(CNNModel, self).__init__()
-
+class SimpleCNN(nn.Module):
+    """
+    A simple convolutional neural network built from a ModelArchitecture.
+    """
+    def __init__(self, config: ModelArchitecture, num_classes: int):
+        super().__init__()
         layers = []
 
-        # Initial convolutional part (optional)
-        if config.initial_conv_layer:
-            layers.append(nn.Conv2d(
-                in_channels=3,  # Assuming RGB images; modify as needed
-                out_channels=config.initial_conv_layer.filters,
-                kernel_size=config.initial_conv_layer.kernel_size,
-                stride=config.initial_conv_layer.stride,
-                padding=config.initial_conv_layer.padding
-            ))
-        if config.initial_bn_layer:
-            layers.append(nn.BatchNorm2d(config.initial_conv_layer.filters))
-        if config.initial_activation_layer:
-            layers.append(self._get_activation(config.initial_activation_layer["type"]))
-        if config.initial_pooling_layer:
-            layers.append(self._get_pooling(config.initial_pooling_layer))
+        # Initial convolution layer
+        base_filters = None
+        if config.initial_conv_layer is not None:
+            ic = config.initial_conv_layer
+            base_filters = ic.filters
+            layers.append(
+                nn.Conv2d(3, ic.filters, kernel_size=ic.kernel_size, stride=ic.stride, padding=ic.padding)
+            )
+            layers.append(nn.BatchNorm2d(ic.filters))
 
-        current_channels=None
         # CNN blocks
         for block in config.cnn_blocks:
-            current_channels = current_channels if current_channels else config.initial_conv_layer.filters
-            conv = nn.Conv2d(
-                in_channels=current_channels,
-                out_channels=block.conv_layer.filters,
-                kernel_size=block.conv_layer.kernel_size,
-                stride=block.conv_layer.stride,
-                padding=block.conv_layer.padding
+            conv = block.conv_layer
+            in_ch = base_filters or conv.filters
+            layers.append(
+                nn.Conv2d(
+                    in_ch,
+                    conv.filters,
+                    kernel_size=conv.kernel_size,
+                    stride=conv.stride,
+                    padding=conv.padding
+                )
             )
-            current_channels = block.conv_layer.filters
-            layers.append(conv)
             if block.batch_norm_layer:
-                layers.append(nn.BatchNorm2d(block.conv_layer.filters))
+                layers.append(nn.BatchNorm2d(conv.filters))
             if block.activation_layer:
-                layers.append(self._get_activation(block.activation_layer.type))
+                act_type = block.activation_layer.type
+                layers.append(_activation_factory[act_type]() if callable(_activation_factory[act_type]) else _activation_factory[act_type]())
             if block.pooling_layer:
-                layers.append(self._get_pooling(block.pooling_layer))
+                p = block.pooling_layer
+                layers.append(
+                    nn.MaxPool2d(kernel_size=p.kernel_size, stride=p.stride, padding=p.padding)
+                )
+            base_filters = conv.filters
+
+        # Adaptive or default pooling
+        out_size = config.adaptive_pooling_layer.output_size if config.adaptive_pooling_layer else 1
+        layers.append(nn.AdaptiveAvgPool2d(out_size))
 
         self.features = nn.Sequential(*layers)
 
-        # Adaptive pooling (optional)
-        self.adaptive_pooling = None
-        if config.adaptive_pooling_layer:
-            self.adaptive_pooling = nn.AdaptiveAvgPool2d(config.adaptive_pooling_layer.output_size)
+        # Compute flatten size
+        flatten_size = base_filters * (out_size ** 2)
 
-        # Classifier
+        # Classifier MLP
         mlp_layers = []
-        input_features = None  # You'll have to compute this manually or flatten dynamically
-        for block in config.mlp_blocks:
-            if block == config.mlp_blocks[-1]:
-                output = 10
-            else : 
-                output = block.linear_layer.neurons
-            mlp_layers.append(nn.LazyLinear(output))  # auto infer input size
-            if block.activation_layer:
-                mlp_layers.append(self._get_activation(block.activation_layer.type))
-            if block.dropout_layer:
-                mlp_layers.append(nn.Dropout(block.dropout_layer.rate))
-            input_features = block.linear_layer.neurons
+        in_features = flatten_size
+        for mlp in config.mlp_blocks:
+            mlp_layers.append(nn.Linear(in_features, mlp.linear_layer.neurons))
+            if mlp.activation_layer:
+                act_type = mlp.activation_layer.type
+                mlp_layers.append(_activation_factory[act_type]() if callable(_activation_factory[act_type]) else _activation_factory[act_type]())
+            if mlp.dropout_layer:
+                mlp_layers.append(nn.Dropout(p=mlp.dropout_layer.rate))
+            in_features = mlp.linear_layer.neurons
 
+        # Final classification layer
+        mlp_layers.append(nn.Linear(in_features, num_classes))
         self.classifier = nn.Sequential(*mlp_layers)
 
-    def _get_activation(self, act_type):
-        act_type = act_type.lower()
-        if act_type == "relu":
-            return nn.ReLU()
-        elif act_type == "sigmoid":
-            return nn.Sigmoid()
-        elif act_type == "tanh":
-            return nn.Tanh()
-        elif act_type == "leaky_relu":
-            return nn.LeakyReLU()
-        else : #return default
-            return nn.ReLU()
-    def _get_pooling(self, pool_config):
-        pool_type = pool_config.type.lower()
-        if pool_type == "max":
-            return nn.MaxPool2d(kernel_size=pool_config.kernel_size, stride=pool_config.stride, padding=pool_config.padding)
-        elif pool_type == "avg":
-            return nn.AvgPool2d(kernel_size=pool_config.kernel_size, stride=pool_config.stride, padding=pool_config.padding)
-        raise ValueError(f"Unsupported pooling type: {pool_type}")
-
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
-        if self.adaptive_pooling:
-            x = self.adaptive_pooling(x)
         x = torch.flatten(x, 1)
-        x = self.classifier(x)
-        return x
-
-
+        return self.classifier(x)
 
 
 if __name__ == "__main__":
-    
-    custom_model = CNNModel(config=SimpleCNNArchitecture)
-    
-    
+    from src.loading.models.simple_CNN.hp import ConvLayerHP, CNNBlockHP, MLPBlockHP, SimpleCNNHP
+    # Create a more complex HP setup
+    hp = SimpleCNNHP(
+        initial_conv=ConvLayerHP(filters=32, kernel_size=3, stride=1, padding=1),
+        cnn_block_hps=[
+            CNNBlockHP(conv=ConvLayerHP(64, 3, 1, 1), batch_norm=True, activation="RELU", pooling={"type": "MAX", "kernel_size": 2, "stride": 2, "padding": 0}),
+            CNNBlockHP(conv=ConvLayerHP(128, 3, 1, 1), batch_norm=True, activation="RELU", pooling={"type": "MAX", "kernel_size": 2, "stride": 2, "padding": 0}),
+        ],
+        adaptive_pooling=4,
+        mlp_block_hps=[
+            MLPBlockHP(neurons=256, activation="RELU", dropout=0.5),
+            MLPBlockHP(neurons=128, activation="RELU", dropout=0.2),
+        ],
+        training={"epochs": 20, "batch_size": 64, "learning_rate": 1e-3, "optimizer": "ADAM", "momentum": 0.9}
+    )
+    config = SimpleCNNConfig.from_hp(hp)
+    model = SimpleCNN(config=config, num_classes=10)
+    print(model)
+
+    # Test forward pass
+    dummy_input = torch.randn(8, 3, 64, 64)
+    output = model(dummy_input)
+    print(f"Output shape: {output.shape}")
+
