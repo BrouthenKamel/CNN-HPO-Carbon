@@ -43,7 +43,7 @@ def modify_value(object, block_modification_ratio = 0.5, search_space = search_s
     # if we are dealing with a list, such as a list of CNNBlocks then we will call the recursive function on each element
     if (isinstance(object, list)):
         for element in object:
-            modify_value(element)
+            modify_value(element,block_modification_ratio=block_modification_ratio,search_space=search_space,perturbation_intensity=perturbation_intensity,perturbation_nature=perturbation_nature)
     # if we are dealing with a BaseModel type, we will modify its content with a 50 50 chance
     elif (isinstance(object,BaseModel)):
         p = random.uniform(0, 1)
@@ -55,14 +55,18 @@ def modify_value(object, block_modification_ratio = 0.5, search_space = search_s
                 if(getattr(object,component_key)== None):
                     modifiable_keys.remove(component_key)
             
-            for iter in range(perturbation_intensity):
+            if len(modifiable_keys)< perturbation_intensity : 
+                nb_perturbations = len(modifiable_keys)
+            else : 
+                nb_perturbations = perturbation_intensity
+            for iter in range(nb_perturbations):
                 # then we will select at random one of the objects to be modified
                 if len(modifiable_keys)!=0:
                     component_key_to_be_modified = random.choice(modifiable_keys)
                     new_object = getattr(object,component_key_to_be_modified)
                     # if this componenet happens to also be a list or a BaseModel, we recursively modify
                     if ( isinstance(new_object,list) or isinstance(new_object,BaseModel)):
-                        modify_value(new_object)
+                        modify_value(new_object,block_modification_ratio=block_modification_ratio,search_space=search_space,perturbation_intensity=perturbation_intensity,perturbation_nature=perturbation_nature)
                     # if not, this means we are dealing with floats, strings or enums, we will modify them directly
                     else :
                         # Case one : we have ENUMs so we will modify them according to the ENUM values set in classes such as ActivationType
@@ -70,9 +74,10 @@ def modify_value(object, block_modification_ratio = 0.5, search_space = search_s
                             possible_values = list(type(new_object))
                             new_value = random.choice(possible_values)
                             setattr(object,component_key_to_be_modified,new_value)
-                            print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                            #print('have modified ', component_key_to_be_modified, ' to ', new_value)
                         # case two : we have values that are supposed to be a in a specefic range, in this case we move up or down the ladder with the value
                         else:
+                            print(component_key_to_be_modified)
                             value_set = search_space[component_key_to_be_modified]
                             old_value = new_object
                             if old_value in value_set and perturbation_nature=="Local":
@@ -81,11 +86,11 @@ def modify_value(object, block_modification_ratio = 0.5, search_space = search_s
                                 if old_index+new_offset >= 0 and old_index+new_offset < len(value_set) :
                                     new_value = value_set[old_index+new_offset]
                                     setattr(object,component_key_to_be_modified,new_value)
-                                    print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                                    #print('have modified ', component_key_to_be_modified, ' to ', new_value)
                             else :
                                 new_value = random.choice(value_set)
                                 setattr(object,component_key_to_be_modified,new_value)
-                                print('have modified ', component_key_to_be_modified, ' to ', new_value)
+                                #print('have modified ', component_key_to_be_modified, ' to ', new_value)
 
 
 
@@ -154,7 +159,7 @@ to_modify = ['cnn_blocks', 'adaptive_pooling_layer','mlp_blocks','training_param
 
 for bloc in to_modify:
     element = getattr(AlexNetArchitecture,bloc)
-    modify_value(element,block_modification_ratio=0.5,perturbation_intensity=3,perturbation_nature="Random")
+    modify_value(element,block_modification_ratio=0.5,search_space=search_space,perturbation_intensity=10,perturbation_nature="Random")
 
 
 
