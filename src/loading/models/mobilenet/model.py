@@ -67,7 +67,7 @@ class InvertedResidual(nn.Module):
 
 class MobileNetV3Small(nn.Module):
     
-    def __init__(self, config: MobileNetConfig = original_config, num_classes=1000, pretrained: bool = False, freeze_blocks_until: Union[int, str] = 0):
+    def __init__(self, config: MobileNetConfig = original_config, num_classes=1000, pretrained: bool = False, freeze_blocks_until: Union[int, str] = 0, freeze: bool = False):
         super().__init__()
 
         layers = []
@@ -107,12 +107,12 @@ class MobileNetV3Small(nn.Module):
             if freeze_blocks_until == "all":
                 freeze_blocks_until = len(self.features)
                 
-            if freeze_blocks_until > 0:
-                freezeable_layers = [layer for layer in self.features if isinstance(layer, (ConvBNActivation, InvertedResidual))]
-                for layer in freezeable_layers[:freeze_blocks_until]:
-                    for param in layer.parameters():
-                        # param.requires_grad = False
-                        pass
+            if freeze:
+                if freeze_blocks_until > 0:
+                    freezeable_layers = [layer for layer in self.features if isinstance(layer, (ConvBNActivation, InvertedResidual))]
+                    for layer in freezeable_layers[:freeze_blocks_until]:
+                        for param in layer.parameters():
+                            param.requires_grad = False
 
     def forward(self, x):
         x = self.features(x)

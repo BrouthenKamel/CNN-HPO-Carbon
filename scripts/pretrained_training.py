@@ -14,12 +14,12 @@ from src.loading.models.mobilenet.model import MobileNetV3Small
 base_dir = './records/'
 os.makedirs(base_dir, exist_ok=True)
 
-save_path = os.path.join(base_dir, 'pretraining_augment.json')
+save_path = os.path.join(base_dir, 'pretraining_freeze.json')
     
 record = []
 
 training_params = TrainingParams(
-    epochs=20,
+    epochs=10,
     batch_size=128,
     learning_rate=0.001,
     optimizer=OptimizerType.ADAM,
@@ -43,7 +43,7 @@ def save_model(model, path):
 for k in freeze:
     print(f"Freezeing {k} blocks...")
 
-    model = MobileNetV3Small(num_classes=dataset.num_classes, pretrained=True, freeze_blocks_until=k)
+    model = MobileNetV3Small(num_classes=dataset.num_classes, pretrained=True, freeze_blocks_until=k, freeze=False)
     n_parameters = count_parameters(model)
     print(f"Model Instantiated successfully! Parameters: {n_parameters} Million")
 

@@ -45,7 +45,7 @@ def hill_climbing_optimization(
     perturbation_strategy: str = "local",
     freeze_blocks_until: int = 0
 ):
-    stage_schedule = [max_epochs // 4, max_epochs // 2, max_epochs]
+    stage_schedule = [max_epochs // 6, max_epochs // 3, max_epochs]
     pretrained = freeze_blocks_until > 0
 
     # Initial evaluation
