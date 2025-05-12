@@ -9,15 +9,19 @@ from src.loading.models.mobilenet.model import MobileNetV3Small
 from src.loading.models.mobilenet.hp import MobileNetHP, original_hp
 from src.loading.models.mobilenet.space import MobileNetHPSpace
 from src.training.train import train_model, count_parameters
+from src.loading.models.resnet18.hp import ResNetHP, original_hp  
+from src.loading.models.resnet18.space import ResNetHPSpace
+from src.loading.models.resnet18.model import ResNet
+from src.loading.models.resnet18.config import ResNetConfig
 from src.loading.data.loader import load_dataset
 from src.schema.dataset import DatasetName
 from src.schema.training import TrainingParams, OptimizerType
 from src.surrogate_modeling.rbf.model import GPRegressorSurrogate
-from src.optim.hill_climbing.algorithm import hill_climbing_optimization
+from src.optim.hill_climbing.algorithm import hill_climbing_optimization_staged_training
 
 print("Preparing training configuration and dataset...")
 training_params = TrainingParams(
-    epochs=10,
+    epochs=1,
     batch_size=64,
     learning_rate=0.0025,
     optimizer=OptimizerType.ADAM,
@@ -30,15 +34,15 @@ dataset = load_dataset(dataset_name)
 
 print("Initializing hyperparameter space and surrogate model...")
 initial_hp = original_hp
-hp_space = MobileNetHPSpace()
+hp_space = ResNetHPSpace()
 
-surrogate_model = GPRegressorSurrogate()
-surrogate_model.load_model('src/surrogate_modeling/rbf/models/gpr.pkl')
+# surrogate_model = GPRegressorSurrogate()
+# surrogate_model.load_model('src/surrogate_modeling/rbf/models/gpr.pkl')
 
 print("Defining actual evaluation function...")
-def actual_evaluation(hp: MobileNetHP):
-    config = MobileNetConfig.from_hp(hp)
-    model = MobileNetV3Small(config, dataset.num_classes)
+def actual_evaluation(hp: ResNetHP):
+    config = ResNetConfig.from_hp(hp)
+    model = ResNet(config, dataset.num_classes)
     print(f"Model Parameters: {count_parameters(model):.3f}M")
     start_time = time.time()
 
@@ -52,14 +56,16 @@ def actual_evaluation(hp: MobileNetHP):
     return test_accuracy
 
 print("Starting hill climbing optimization...")
-best_hp, history = hill_climbing_optimization(
+best_hp, history = hill_climbing_optimization_staged_training(
+    dataset,
+    training_params,
     initial_hp=initial_hp,
     hp_space=hp_space,
-    surrogate_model=lambda hp_flat: surrogate_model.predict(pd.DataFrame([hp_flat]))[0],
-    actual_evaluation=actual_evaluation,
-    iterations=10,
+    # surrogate_model=lambda hp_flat: surrogate_model.predict(pd.DataFrame([hp_flat]))[0],
+    # actual_evaluation=actual_evaluation,
+    iterations=1,
     neighbors_per_iteration=10,
-    actual_evaluations_per_iteration=2,
+    # actual_evaluations_per_iteration=2,
     block_modification_ratio=0.3,
     param_modification_ratio=0.5,
     perturbation_intensity=1,
@@ -70,3 +76,4 @@ print("=" * 40)
 print("Best Hyperparameters:")
 print(best_hp.to_dict())
 print("=" * 40)
+

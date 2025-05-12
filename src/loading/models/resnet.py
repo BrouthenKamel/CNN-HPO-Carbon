@@ -1,65 +1,60 @@
 import torch
-import os
-import sys
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-src_dir = os.path.abspath(os.path.join(current_dir, os.pardir, os.pardir))
-if src_dir not in sys.path:
-    sys.path.append(src_dir)
-
-from schema.model import ModelArchitecture
-from schema.block import ResNetBlock
-from schema.layer import PoolingType, ActivationType
-from schema.training import OptimizerType
+from src.schema.model import ModelArchitecture
+from src.schema.block import ResNetBlock
+from src.schema.layer import PoolingType, ActivationType
+from src.schema.training import OptimizerType, TrainingParams
+from src.schema.layer import ConvLayer, PoolingLayer, DropoutLayer, LinearLayer, ActivationLayer, BatchNormLayer, AdaptivePoolingLayer
 
 
 ResNet18Architecture = ModelArchitecture(
-    initial_conv_layer=dict(filters=64, kernel_size=7, stride=2, padding=3),
-    initial_bn_layer=dict(), 
-    initial_activation_layer=dict(type=ActivationType.RELU.value),
-    initial_pooling_layer=dict(type=PoolingType.MAX.value, kernel_size=3, stride=2, padding=1),
+    initial_conv_layer=ConvLayer(filters=64, kernel_size=7, stride=2, padding=3),
+    initial_activation_layer=ActivationLayer(type=ActivationType.RELU),
+    initial_batch_norm_layer=BatchNormLayer(num_features=64, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True),
+    initial_pooling_layer=PoolingLayer(type=PoolingType.MAX, kernel_size=3, stride=2, padding=1),
 
     resnet_blocks=[
-        ResNetBlock(in_channels=64, out_channels=64, stride=1, activation_type=ActivationType.RELU.value),
-        ResNetBlock(in_channels=64, out_channels=64, stride=1, activation_type=ActivationType.RELU.value),
+        ResNetBlock(in_channels=64, out_channels=64, stride=1, activation_type=ActivationType.RELU),
+        ResNetBlock(in_channels=64, out_channels=64, stride=1, activation_type=ActivationType.RELU),
         ResNetBlock(
             in_channels=64, 
             out_channels=128, 
             stride=2, 
-            activation_type=ActivationType.RELU.value,
-            downsample=dict(filters=128, kernel_size=1, stride=2, padding=0)  
+            activation_type=ActivationType.RELU,
+            downsample=ConvLayer(filters=128, kernel_size=1, stride=2, padding=0)
         ),
-        ResNetBlock(in_channels=128, out_channels=128, stride=1, activation_type=ActivationType.RELU.value),
+        ResNetBlock(in_channels=128, out_channels=128, stride=1, activation_type=ActivationType.RELU),
         ResNetBlock(
             in_channels=128, 
             out_channels=256, 
             stride=2, 
-            activation_type=ActivationType.RELU.value,
-            downsample=dict(filters=256, kernel_size=1, stride=2, padding=0)  
+            activation_type=ActivationType.RELU,
+            downsample=ConvLayer(filters=256, kernel_size=1, stride=2, padding=0)  
         ),
-        ResNetBlock(in_channels=256, out_channels=256, stride=1, activation_type=ActivationType.RELU.value),
+        ResNetBlock(in_channels=256, out_channels=256, stride=1, activation_type=ActivationType.RELU),
         ResNetBlock(
             in_channels=256, 
             out_channels=512, 
             stride=2, 
-            activation_type=ActivationType.RELU.value,
-            downsample=dict(filters=512, kernel_size=1, stride=2, padding=0) 
+            activation_type=ActivationType.RELU,
+            downsample=ConvLayer(filters=512, kernel_size=1, stride=2, padding=0) 
         ),
-        ResNetBlock(in_channels=512, out_channels=512, stride=1, activation_type=ActivationType.RELU.value),
+        ResNetBlock(in_channels=512, out_channels=512, stride=1, activation_type=ActivationType.RELU),
     ],
 
     cnn_blocks=[],
 
-    adaptive_pooling_layer=dict(
-        type=PoolingType.AVG.value,
+    adaptive_pooling_layer=AdaptivePoolingLayer(
+        type=PoolingType.AVG,
         output_size=1  
     ),
     mlp_blocks=[], 
-    training=dict(
+
+    # Modifie ici pour utiliser 'training_params' au lieu de 'training'
+    training_params=TrainingParams(
         epochs=20,
         batch_size=64,
         learning_rate=0.01,
-        optimizer=OptimizerType.SGD.value,
+        optimizer=OptimizerType.SGD,
         momentum=0.9,
         weight_decay=0.0001
     )
@@ -67,7 +62,7 @@ ResNet18Architecture = ModelArchitecture(
 
 if __name__ == '__main__':
     try:
-        from loading.models.model_builder import create_model
+        from src.loading.models.model_builder import create_model
         
         model = create_model(ResNet18Architecture, in_channels=3, num_classes=10)
         print("ResNet18 Schema Model (structure based on schema):")
@@ -87,4 +82,3 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Error during model creation or dummy forward pass: {e}")
         print("(This might be expected if model_builder.py is not yet updated for ResNetBlock)")
-

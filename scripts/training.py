@@ -40,13 +40,13 @@ for dataset_name in [DatasetName.CIFAR10]:
     
     for family in [
         # ModelFamily.VGG,
-        # ModelFamily.RESNET,
+        ModelFamily.RESNET,
         # ModelFamily.EFFICIENTNET,
         # ModelFamily.MOBILENET,
         # ModelFamily.DENSENET,
         # ModelFamily.REGNET,
         # ModelFamily.SQUEEZENET,
-        ModelFamily.MOBILENETV3,
+        # ModelFamily.MOBILENETV3,
     ]:
         
         for pretrained in [False]:
